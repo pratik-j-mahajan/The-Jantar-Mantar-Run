@@ -32,7 +32,11 @@ JM.engine = (() => {
   const cam = { x: 0, d: 0, h: 5.2, pitch: 0.43 };
   let ca = Math.cos(cam.pitch), sa = Math.sin(cam.pitch);
 
-  function init(canvas) { cv = canvas; c = cv.getContext('2d'); resize(); addEventListener('resize', resize); }
+  function init(canvas) {
+    cv = canvas; c = cv.getContext('2d'); resize();
+    addEventListener('resize', resize);
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(cv); // also catches rotation / browser-UI changes after layout
+  }
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, JM.quality.dprCap);
     const r = cv.getBoundingClientRect();

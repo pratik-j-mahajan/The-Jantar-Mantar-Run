@@ -13,6 +13,8 @@ js/engine.js    2.5D renderer: tilted chase camera, lit boxes, textured faces, b
 js/props.js     textures: Delhi facades, police vans, autos, barricades, banners, trees
 js/world.js     level layout, chowk, Jantar Mantar compound, world rendering
 js/game.js      game states, input, AI, effects, HUD, analytics
+og-image.jpg    1200×630 share preview (WhatsApp / LinkedIn / X), rendered from the game itself
+apple-touch-icon.png  home-screen icon
 ```
 
 ## Run locally

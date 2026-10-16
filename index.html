@@ -8,6 +8,18 @@
   <meta name="theme-color" content="#d00000">
   <meta property="og:title" content="चलो जंतर मंतर — Chalo Jantar Mantar">
   <meta property="og:description" content="Dodge the cops, jump the barricades, reach Jantar Mantar.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://the-jantar-mantar-run.vercel.app/">
+  <meta property="og:image" content="https://the-jantar-mantar-run.vercel.app/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="चलो जंतर मंतर: five cartoon protesters in front of a Delhi police bus blockade">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="चलो जंतर मंतर — Chalo Jantar Mantar">
+  <meta name="twitter:description" content="Dodge the cops, jump the barricades, reach Jantar Mantar.">
+  <meta name="twitter:image" content="https://the-jantar-mantar-run.vercel.app/og-image.jpg">
+  <link rel="canonical" href="https://the-jantar-mantar-run.vercel.app/">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d00000'/%3E%3Cpath d='M12 54h40V10z' fill='%23ffd23f' stroke='%231d1424' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E">
 
   <!-- Google Analytics (GA4) — property G-4LJWPG03B6 (ID appears twice below) -->
@@ -25,6 +37,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="loading">
+<noscript><p style="font:600 18px system-ui;padding:24px;color:#fff3dc;background:#2a1a10;height:100vh;margin:0">चलो जंतर मंतर needs JavaScript. Please enable it and reload.</p></noscript>
 <main id="app">
   <canvas id="game" aria-label="Game view"></canvas>
   <div class="halftone" aria-hidden="true"></div>
@@ -65,7 +78,8 @@
       <div class="banner"><h1>चलो जंतर मंतर</h1></div>
       <div class="tape">THE GREAT DELHI PROTEST RUN</div>
       <button id="playBtn" class="placard"><span>PLAY</span></button>
-      <p class="hint"><kbd>←</kbd><kbd>→</kbd> move &nbsp; <kbd>↑</kbd><kbd>↓</kbd> run / back &nbsp; <kbd>SPACE</kbd> jump</p>
+      <p class="hint keys-hint"><kbd>←</kbd><kbd>→</kbd> move &nbsp; <kbd>↑</kbd><kbd>↓</kbd> run / back &nbsp; <kbd>SPACE</kbd> jump</p>
+      <p class="hint touch-hint">Hold <kbd>◀</kbd><kbd>▶</kbd> to move · <kbd>▲</kbd> to run · tap <kbd>JUMP</kbd> · swipe up to jump</p>
     </div>
   </section>
 

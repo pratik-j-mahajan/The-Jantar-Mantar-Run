@@ -310,6 +310,12 @@ JM.audio = (() => {
       amb.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
     },
     duck(on) { if (ctx) music.gain.setTargetAtTime(on ? 0.12 : 0.5, ctx.currentTime, 0.15); },
+    // pause everything while the tab is hidden; on return, resync the scheduler so nothing bunches up
+    pause(hidden) {
+      if (!ctx) return;
+      if (hidden) { ctx.suspend().catch(() => {}); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+      else ctx.resume().then(() => { nextT = Math.max(nextT, ctx.currentTime + 0.05); }).catch(() => {});
+    },
     setIntensity(x) { intensity = x; },
     setMuted(m) { muted = m; if (ctx) master.gain.setTargetAtTime(m ? 0 : 0.9, ctx.currentTime, 0.05); if (m && 'speechSynthesis' in window) speechSynthesis.cancel(); },
     whistle, siren, busHorn, thak, dhishum, jump, land, pickup, count, fanfare, sad, say,

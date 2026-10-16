@@ -2,7 +2,7 @@
 //   one minified JS bundle + one minified CSS file (content-hashed, cache forever on the CDN),
 //   a versioned service worker, and cache headers for Netlify (_headers) and Vercel (vercel.json).
 // Usage: node build.mjs   (needs esbuild: `npm install` in this folder, or any parent node_modules)
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 
@@ -35,6 +35,7 @@ let html = readFileSync('index.html', 'utf8')
   .replace('</body>', `<script src="${jsName}" defer></script>\n</body>`)
   .replace(/\n\s+/g, '\n');
 writeFileSync('dist/index.html', html);
+for (const f of ['og-image.jpg', 'apple-touch-icon.png']) copyFileSync(f, `dist/${f}`); // share preview + home-screen icon
 
 const version = hash(jsMin + cssMin + html);
 writeFileSync('dist/sw.js', readFileSync('sw.js', 'utf8')

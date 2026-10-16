@@ -267,3 +267,17 @@ kbd { display: inline-block; min-width: 28px; padding: 2px 6px; margin: 0 2px; f
 @media (max-width: 700px) { .hud-back { font-size: 14px; padding: 6px 8px 4px; } }
 
 .lowfx .halftone { display: none; }
+
+.touch-hint { display: none; }
+@media (hover: none), (pointer: coarse) { .keys-hint { display: none; } .touch-hint { display: block; } }
+
+/* small phones: keep the title banner and hints inside the screen */
+.title-wrap { max-width: 100%; }
+.hint { max-width: 92vw; line-height: 1.9; }
+@media (max-width: 520px) {
+  .banner { padding: 10px 26px 12px; box-shadow: 6px 6px 0 var(--ink); }
+  .banner h1 { font-size: clamp(36px, 11.5vw, 60px); -webkit-text-stroke: 1.5px var(--ink); }
+  .banner.big h1 { font-size: clamp(40px, 12.5vw, 64px); }
+  .tape { font-size: 16px; letter-spacing: .08em; }
+  .hint { font-size: 13px; } .hint kbd { min-width: 22px; font-size: 13px; padding: 1px 4px; }
+}

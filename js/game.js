@@ -372,7 +372,14 @@
       if (!v.moving) continue;
       if (!v.active && P && P.d > v.d - 50 && mode === 'play') { v.active = true; A.siren(1.8); pop('bubble', 'PEE-POO!', v.x, v.d - 2, 3, { max: 1 }); }
       if (!v.active) continue;
-      v.v = Math.min(10.5, v.v + dt * 8); v.d -= v.v * dt;
+      v.v = Math.min(10.5, v.v + dt * 8);
+      const nd = v.d - v.v * dt, front = nd - 2.4;
+      const hitsParked = W.vans.some((o) => o !== v && !o.moving && Math.abs(o.x - v.x) < 2 && front < o.d + 2.6 && front > o.d - 2.4)
+        || W.trucks.some((o) => Math.abs(o.x - v.x) < 2.2 && front < o.d + 3.4 && front > o.d - 3.2)
+        || W.cannons.some((o) => Math.abs(o.x - v.x) < 2.2 && front < o.d + 3.5 && front > o.d - 3.3)
+        || W.buses.some((o) => v.x + 1 > o.x0 && v.x - 1 < o.x1 && front < o.d1 && front > o.d0 - 0.5);
+      if (hitsParked) { v.moving = false; v.active = false; v.v = 0; A.busHorn(); pop('bubble', 'SCREECH!', v.x, v.d - 2.4, 2.2, { max: 0.8, size: 0.8 }); continue; }
+      v.d = nd;
       for (let j = W.bars.length - 1; j >= 0; j--) {
         const b = W.bars[j];
         if (Math.abs(b.x - v.x) < 1.6 && Math.abs(b.d - (v.d - 2.4)) < 0.7) { W.bars.splice(j, 1); debris(b.x, b.d); A.thak(); pop('burst', 'CRASH!', b.x, b.d, 1.5, { bg: '#ffd23f', max: 0.7, size: 0.8 }); }
@@ -658,6 +665,7 @@
     if (e.code === 'ArrowRight' || e.code === 'KeyD') inp.right = false;
   });
   addEventListener('blur', () => { inp.up = inp.down = inp.left = inp.right = false; });
+  document.addEventListener('visibilitychange', () => { A.pause(document.hidden); if (document.hidden) inp.up = inp.down = inp.left = inp.right = false; });
   addEventListener('touchstart', () => document.body.classList.add('touch'), { once: true, passive: true });
 
   function padBtn(id, down, up) {
@@ -746,12 +754,17 @@
     watchPerf(raw, dt);
     if (mode === 'dying') dt *= 0.45;
     clock += dt;
-    if (mode !== 'boot') {
-      step(dt, now);
-      updateCam(dt);
-      render(dt);
-      if (P) hudFrame();
-      if (mode === 'select') drawCards();
+    try {
+      if (mode !== 'boot') {
+        step(dt, now);
+        updateCam(dt);
+        render(dt);
+        if (P) hudFrame();
+        if (mode === 'select') drawCards();
+      }
+    } catch (err) {
+      // never let one bad frame freeze the game; report it once so it can be fixed
+      if (!frame.reported) { frame.reported = true; console.error(err); track('exception', { description: String(err && err.message || err).slice(0, 150), fatal: false }); }
     }
     requestAnimationFrame(frame);
   }
