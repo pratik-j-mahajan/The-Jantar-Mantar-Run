@@ -5,10 +5,11 @@ window.JM = window.JM || {};
 // Adaptive quality: 3 = full detail ... 0 = potato mode. Steps down automatically on slow devices.
 JM.quality = (() => {
   const LEVELS = [
-    { dprCap: 0.75, groundTex: false, pavers: false, shadows: false, clouds: false, grain: false, crowdRange: 35 },
-    { dprCap: 1.0, groundTex: false, pavers: false, shadows: false, clouds: false, grain: false, crowdRange: 45 },
-    { dprCap: 1.35, groundTex: true, pavers: false, shadows: true, clouds: true, grain: true, crowdRange: 60 },
-    { dprCap: 1.75, groundTex: true, pavers: true, shadows: true, clouds: true, grain: true, crowdRange: 70 },
+    // maxPx = total canvas pixel budget: big/Retina screens render at a capped resolution and are upscaled smoothly
+    { dprCap: 0.75, maxPx: 0.5e6, groundTex: false, pavers: false, shadows: false, clouds: false, grain: false, crowdRange: 35 },
+    { dprCap: 1.0, maxPx: 0.9e6, groundTex: false, pavers: false, shadows: false, clouds: false, grain: false, crowdRange: 45 },
+    { dprCap: 1.35, maxPx: 1.5e6, groundTex: true, pavers: false, shadows: true, clouds: true, grain: true, crowdRange: 60 },
+    { dprCap: 1.6, maxPx: 2.4e6, groundTex: true, pavers: true, shadows: true, clouds: true, grain: true, crowdRange: 70 },
   ];
   let saved = null;
   try { saved = localStorage.getItem('cjm_q'); } catch (_) {}
@@ -38,8 +39,10 @@ JM.engine = (() => {
     if (window.ResizeObserver) new ResizeObserver(resize).observe(cv); // also catches rotation / browser-UI changes after layout
   }
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, JM.quality.dprCap);
     const r = cv.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, JM.quality.dprCap);
+    const css = Math.max(1, r.width * r.height);
+    if (css * dpr * dpr > JM.quality.maxPx) dpr = Math.max(0.5, Math.sqrt(JM.quality.maxPx / css));
     W = cv.width = Math.max(1, Math.round(r.width * dpr));
     H = cv.height = Math.max(1, Math.round(r.height * dpr));
     F = Math.min(H * 0.98, W * 0.86);

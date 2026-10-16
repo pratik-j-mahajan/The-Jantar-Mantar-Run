@@ -380,6 +380,19 @@ JM.world = (() => {
   }
 
   // ---------- full frame ----------
+  let post = null;
+  function makePost(W2, H2) {
+    const cv = document.createElement('canvas'), s = 0.5; // half-res is plenty for soft gradients
+    cv.width = Math.max(1, Math.round(W2 * s)); cv.height = Math.max(1, Math.round(H2 * s));
+    const c = cv.getContext('2d'), w = cv.width, h = cv.height;
+    const lk = c.createRadialGradient(w * 0.12, 0, 0, w * 0.12, 0, h * 0.9);
+    lk.addColorStop(0, 'rgba(255,190,110,.18)'); lk.addColorStop(1, 'rgba(255,190,110,0)');
+    c.fillStyle = lk; c.fillRect(0, 0, w, h);
+    const vg = c.createRadialGradient(w / 2, h * 0.55, h * 0.35, w / 2, h * 0.55, h * 1.05);
+    vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(70,25,5,.38)');
+    c.fillStyle = vg; c.fillRect(0, 0, w, h);
+    return { cv, w: W2, h: H2 };
+  }
   function render(W, t, dyn) {
     const e = E(), c = e.c, cd = e.cam.d, fogA = (d) => e.fog(e.depth(d));
     drawSky(t);
@@ -447,13 +460,9 @@ JM.world = (() => {
     const hz = c.createLinearGradient(0, hy2 - H2 * 0.08, 0, hy2 + H2 * 0.22);
     hz.addColorStop(0, 'rgba(255,222,180,0)'); hz.addColorStop(0.35, 'rgba(255,214,168,.38)'); hz.addColorStop(1, 'rgba(255,214,168,0)');
     c.fillStyle = hz; c.fillRect(0, 0, W2, H2);
-    const lk = c.createRadialGradient(W2 * 0.12, 0, 0, W2 * 0.12, 0, H2 * 0.9);
-    lk.addColorStop(0, 'rgba(255,190,110,.18)'); lk.addColorStop(1, 'rgba(255,190,110,0)');
-    c.fillStyle = lk; c.fillRect(0, 0, W2, H2);
-    // vignette
-    const vg = c.createRadialGradient(W2 / 2, H2 * 0.55, H2 * 0.35, W2 / 2, H2 * 0.55, H2 * 1.05);
-    vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(70,25,5,.38)');
-    c.fillStyle = vg; c.fillRect(0, 0, W2, H2);
+    // light leak + vignette never change for a given screen size: pre-render once, blit each frame
+    if (!post || post.w !== W2 || post.h !== H2) post = makePost(W2, H2);
+    c.drawImage(post.cv, 0, 0, W2, H2);
   }
 
   return { build, blocked, render, LANES, ROAD, GOAL, CHOWK, ISLAND_R };

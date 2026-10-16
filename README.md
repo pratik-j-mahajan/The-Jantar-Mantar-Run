@@ -94,7 +94,9 @@ npm run build
 - **Built for heavy traffic:** everything runs in the player's browser, so there is no game server to overload; the CDN just serves static files.
 - **Fast start:** fonts are preloaded from the same origin, and Google Analytics loads only after the game is ready. The game is playable in under a second on a normal connection.
 - **No stutter mid-run:** character poses are pre-rendered in idle time.
-- **Adaptive quality** (levels 3 → 0): if a device can't hold about 40 fps, the game steps down resolution, then ground textures, shadows, clouds, grain and crowd distance. The level is remembered per device.
+- **Resolution budget:** big and Retina screens render at a capped pixel count (about 2.4 MP at full quality) and are upscaled smoothly, so a 4K monitor costs about the same as a laptop.
+- **60 fps cap:** 120 Hz and 144 Hz displays draw every other refresh instead of doubling the work.
+- **Adaptive quality** (levels 3 → 0): if a device can't hold about 50 fps, the game steps down resolution, then ground textures, shadows, clouds, grain and crowd distance. The level is remembered per device.
 - **Crash-safe:** the frame loop survives unexpected errors and reports them to GA.
 
 ### Google Analytics

@@ -744,10 +744,12 @@
     perf.ema += (raw - perf.ema) * 0.08;
     perf.cool = Math.max(0, perf.cool - dt);
     if (perf.cool > 0) return;
-    perf.slow = perf.ema > 25 ? perf.slow + dt : 0;
-    if (perf.slow > 1.5 && JM.quality.level > 0) { JM.quality.set(JM.quality.level - 1); perf.slow = 0; perf.cool = 3; perf.ema = 16; }
+    perf.slow = perf.ema > 20 ? perf.slow + dt : 0;   // below ~50fps for 1.2s -> step down
+    if (perf.slow > 1.2 && JM.quality.level > 0) { JM.quality.set(JM.quality.level - 1); perf.slow = 0; perf.cool = 3; perf.ema = 16; }
   }
   function frame(now) {
+    // 120/144Hz screens: draw at ~60fps (every other vsync) instead of doubling the work
+    if (now - last < 12) { requestAnimationFrame(frame); return; }
     const raw = now - last;
     let dt = clamp(raw / 1000, 0, 0.05);
     last = now;

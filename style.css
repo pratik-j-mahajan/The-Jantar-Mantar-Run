@@ -22,7 +22,7 @@ html, body {
 #app { position: fixed; inset: 0; overflow: hidden; }
 #game { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 .halftone {
-  position: absolute; inset: 0; pointer-events: none; opacity: .14; mix-blend-mode: overlay;
+  position: absolute; inset: 0; pointer-events: none; opacity: .05;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .hidden { display: none !important; }
