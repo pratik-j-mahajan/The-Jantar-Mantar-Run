@@ -6,15 +6,22 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 
-let esbuild;
-try { esbuild = await import('esbuild'); } catch { console.error('esbuild not found. Run: npm install'); process.exit(1); }
+// esbuild minifies; if it's unavailable or fails we still ship a working (unminified) bundle,
+// since the CDN gzips it anyway. A deploy never fails because of the minifier.
+let esbuild = null;
+try { esbuild = await import('esbuild'); } catch { console.warn('esbuild not available: building without minification'); }
+async function minify(code, loader) {
+  if (!esbuild) return code;
+  try { return (await esbuild.transform(code, { loader, minify: true, target: loader === 'js' ? 'es2019' : undefined, legalComments: 'none' })).code; }
+  catch (err) { console.warn(`minify (${loader}) failed, using original: ${err.message}`); return code; }
+}
 
 const ORDER = ['audio', 'sprites', 'engine', 'props', 'world', 'game'];
 const hash = (s) => createHash('sha256').update(s).digest('hex').slice(0, 10);
 
 const js = ORDER.map((n) => readFileSync(`js/${n}.js`, 'utf8')).join('\n;\n');
-const jsMin = (await esbuild.transform(js, { minify: true, target: 'es2019', legalComments: 'none' })).code;
-const cssMin = (await esbuild.transform(readFileSync('style.css', 'utf8'), { loader: 'css', minify: true })).code;
+const jsMin = await minify(js, 'js');
+const cssMin = await minify(readFileSync('style.css', 'utf8'), 'css');
 const jsName = `assets/game.${hash(jsMin)}.js`, cssName = `assets/style.${hash(cssMin)}.css`;
 
 rmSync('dist', { recursive: true, force: true });
