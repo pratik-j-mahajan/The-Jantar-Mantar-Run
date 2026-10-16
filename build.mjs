@@ -36,14 +36,19 @@ let html = readFileSync('index.html', 'utf8')
   .replace(/\n\s+/g, '\n');
 writeFileSync('dist/index.html', html);
 for (const f of ['og-image.jpg', 'apple-touch-icon.png']) copyFileSync(f, `dist/${f}`); // share preview + home-screen icon
+const FONTS = ['yatra-one-subset.woff2', 'bangers-latin.woff2', 'baloo2-latin.woff2'];
+mkdirSync('dist/fonts', { recursive: true });
+for (const f of FONTS) copyFileSync(`fonts/${f}`, `dist/fonts/${f}`);
 
 const version = hash(jsMin + cssMin + html);
 writeFileSync('dist/sw.js', readFileSync('sw.js', 'utf8')
   .replace("const VERSION = 'dev';", `const VERSION = '${version}';`)
-  .replace("const ASSETS = ['./'];", `const ASSETS = ${JSON.stringify(['./', jsName, cssName])};`)
+  .replace("const ASSETS = ['./'];", `const ASSETS = ${JSON.stringify(['./', jsName, cssName, ...FONTS.map((f) => 'fonts/' + f)])};`)
   .replace('const HASHED = false;', 'const HASHED = true;'));
 
 writeFileSync('dist/_headers', `/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/fonts/*
   Cache-Control: public, max-age=31536000, immutable
 /sw.js
   Cache-Control: no-cache

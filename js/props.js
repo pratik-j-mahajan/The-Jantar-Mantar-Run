@@ -11,8 +11,28 @@ JM.props = (() => {
     return () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   }
   function mk(w, h, fn) { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; fn(cv.getContext('2d'), w, h); return cv; }
+  // grain: one small noise tile made once (write-only, no GPU read-back), then painted as a pattern
+  const tiles = {};
+  function noiseTile(density, size = 128) {
+    const key = density + ':' + size;
+    if (tiles[key]) return tiles[key];
+    const cv = document.createElement('canvas'); cv.width = cv.height = size;
+    const c = cv.getContext('2d'), img = c.createImageData(size, size), px = img.data;
+    for (let i = 0; i < px.length; i += 4) {
+      if (Math.random() > density) continue;
+      const v = Math.random() < 0.5 ? 0 : 255;
+      px[i] = px[i + 1] = px[i + 2] = v; px[i + 3] = 40 + Math.random() * 215;
+    }
+    c.putImageData(img, 0, 0);
+    return (tiles[key] = cv);
+  }
   function speckle(c, w, h, R, n, a) {
-    for (let i = 0; i < n; i++) { c.fillStyle = R() < 0.5 ? `rgba(0,0,0,${a * R()})` : `rgba(255,255,255,${a * R()})`; c.fillRect(R() * w, R() * h, 1 + R() * 2, 1 + R() * 2); }
+    c.save();
+    c.globalAlpha = Math.min(1, a * 2.2);
+    c.fillStyle = c.createPattern(noiseTile(Math.min(0.6, (n / (w * h)) * 2.5)), 'repeat');
+    c.translate(-((R() * 128) | 0), -((R() * 128) | 0));
+    c.fillRect(0, 0, w + 128, h + 128);
+    c.restore();
   }
   function grime(c, w, h, R, n = 40) {
     speckle(c, w, h, R, w * h / 60, 0.12);
@@ -268,7 +288,9 @@ JM.props = (() => {
     const R = rng(77);
     return mk(512, 512, (c, w, h) => {
       c.fillStyle = '#4d4e55'; c.fillRect(0, 0, w, h);
-      for (let i = 0; i < 26000; i++) { const v = 40 + R() * 70 | 0; c.fillStyle = `rgba(${v},${v},${v + 4},${0.25 + R() * 0.35})`; c.fillRect(R() * w, R() * h, 1 + R() * 2, 1 + R() * 2); }
+      // aggregate grit: fine noise + sparse coarse stones, both from cached tiles
+      c.save(); c.globalAlpha = 0.22; c.fillStyle = c.createPattern(noiseTile(0.9, 256), 'repeat'); c.fillRect(0, 0, w, h);
+      c.globalAlpha = 0.45; c.fillStyle = c.createPattern(noiseTile(0.06, 256), 'repeat'); c.translate(37, 91); c.fillRect(-37, -91, w, h); c.restore();
       // repaired patches + tyre polish along wheel paths
       for (let i = 0; i < 4; i++) { const x = R() * (w - 140), y = R() * (h - 110), pw = 40 + R() * 90, ph = 30 + R() * 70, g = c.createRadialGradient(x + pw / 2, y + ph / 2, 0, x + pw / 2, y + ph / 2, Math.max(pw, ph) * 0.7); g.addColorStop(0, 'rgba(30,30,34,.1)'); g.addColorStop(1, 'rgba(30,30,34,0)'); c.fillStyle = g; c.fillRect(x, y, pw, ph); }
       for (const x of [0.18, 0.32, 0.68, 0.82]) { const g = c.createLinearGradient(x * w - 18, 0, x * w + 18, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.5, 'rgba(20,20,24,.18)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(x * w - 18, 0, 36, h); }
@@ -443,7 +465,7 @@ JM.props = (() => {
       banner('NO PAPER LEAKS', '#1d3557', '#ffd166'), banner('इंक़लाब ज़िंदाबाद', '#2a9d8f', '#fff'),
       banner('STUDENTS UNITE', '#7b2cbf', '#fff'), banner('न्याय दो', '#f77f00', '#fff'),
     ];
-    T.startBanner = banner('चलो जंतर मंतर', '#d00000', '#ffd166');
+    T.startBanner = banner('द जंतर मंतर रन', '#d00000', '#ffd166');
     T.trees = [tree(1), tree(2), tree(3)];
     T.asphalt = asphalt(); T.pavers = pavers();
     T.lamp = lamp(); T.chai = chai(); T.gate = gateSign();

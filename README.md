@@ -1,4 +1,4 @@
-# चलो जंतर मंतर — Chalo Jantar Mantar
+# द जंतर मंतर रन — The Jantar Mantar Run
 
 A comic-style, 3D-looking arcade run down a Delhi road to Jantar Mantar. You pick a protester, switch lanes, jump barricades, and dodge the Dilli Police and the orange-shirt stick squad.
 

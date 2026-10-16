@@ -1,3 +1,6 @@
+@font-face { font-family: "Yatra One"; src: url("/fonts/yatra-one-subset.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Bangers"; src: url("/fonts/bangers-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Baloo 2"; src: url("/fonts/baloo2-latin.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
 :root {
   --ink: #1d1424;
   --paper: #fff3dc;
@@ -138,7 +141,7 @@ body.touch .pad { display: flex; }
 .placard.alt span { color: var(--ink); text-shadow: none; }
 .link { font: 700 16px var(--ui); text-decoration: underline; color: #fff; text-shadow: 1px 1px 0 var(--ink), -1px -1px 0 var(--ink); }
 .hint { color: #fff; font-weight: 700; font-size: 15px; text-shadow: 2px 2px 0 var(--ink); }
-kbd { display: inline-block; min-width: 28px; padding: 2px 6px; margin: 0 2px; font: 16px var(--comic); background: var(--paper); color: var(--ink); border: 2px solid var(--ink); border-radius: 5px; box-shadow: 2px 2px 0 var(--ink); }
+kbd { display: inline-block; min-width: 28px; padding: 1px 8px; margin: 0 2px; font: 800 14px/1.5 var(--ui); letter-spacing: .04em; text-align: center; vertical-align: 1px; background: var(--paper); color: var(--ink); border: 2px solid var(--ink); border-radius: 5px; box-shadow: 2px 2px 0 var(--ink); }
 .row { display: flex; gap: 22px; justify-content: center; align-items: flex-start; flex-wrap: wrap; }
 
 /* ---------- title ---------- */
@@ -279,5 +282,7 @@ kbd { display: inline-block; min-width: 28px; padding: 2px 6px; margin: 0 2px; f
   .banner h1 { font-size: clamp(36px, 11.5vw, 60px); -webkit-text-stroke: 1.5px var(--ink); }
   .banner.big h1 { font-size: clamp(40px, 12.5vw, 64px); }
   .tape { font-size: 16px; letter-spacing: .08em; }
-  .hint { font-size: 13px; } .hint kbd { min-width: 22px; font-size: 13px; padding: 1px 4px; }
+  .hint { font-size: 13px; } .hint kbd { min-width: 22px; font-size: 12px; padding: 0 6px; }
 }
+
+kbd { text-shadow: none; -webkit-text-stroke: 0; background: #fffaf0; color: #1d1424; }

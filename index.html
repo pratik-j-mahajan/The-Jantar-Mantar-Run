@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>चलो जंतर मंतर — Chalo Jantar Mantar</title>
+  <title>द जंतर मंतर रन — The Jantar Mantar Run</title>
   <meta name="description" content="A comic arcade protest run through Delhi. Dodge the cops, jump the barricades, reach Jantar Mantar.">
   <meta name="theme-color" content="#d00000">
-  <meta property="og:title" content="चलो जंतर मंतर — Chalo Jantar Mantar">
+  <meta property="og:title" content="द जंतर मंतर रन — The Jantar Mantar Run">
   <meta property="og:description" content="Dodge the cops, jump the barricades, reach Jantar Mantar.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://the-jantar-mantar-run.vercel.app/">
   <meta property="og:image" content="https://the-jantar-mantar-run.vercel.app/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="चलो जंतर मंतर: five cartoon protesters in front of a Delhi police bus blockade">
+  <meta property="og:image:alt" content="द जंतर मंतर रन: five cartoon protesters in front of a Delhi police bus blockade">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="चलो जंतर मंतर — Chalo Jantar Mantar">
+  <meta name="twitter:title" content="द जंतर मंतर रन — The Jantar Mantar Run">
   <meta name="twitter:description" content="Dodge the cops, jump the barricades, reach Jantar Mantar.">
   <meta name="twitter:image" content="https://the-jantar-mantar-run.vercel.app/og-image.jpg">
   <link rel="canonical" href="https://the-jantar-mantar-run.vercel.app/">
@@ -23,21 +23,23 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d00000'/%3E%3Cpath d='M12 54h40V10z' fill='%23ffd23f' stroke='%231d1424' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E">
 
   <!-- Google Analytics (GA4) — property G-4LJWPG03B6 (ID appears twice below) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4LJWPG03B6"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-4LJWPG03B6');
+    // load the analytics library only after the game is up, so it never competes with the game for bandwidth
+    // (page_view + events are queued in dataLayer and sent once it arrives)
+    addEventListener('load', function () { setTimeout(function () { var s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=G-4LJWPG03B6'; document.head.appendChild(s); }, 1500); });
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=Yatra+One&family=Baloo+2:wght@600;800&display=swap">
+  <!-- self-hosted, subsetted fonts (same origin = no extra DNS/TLS, no render-blocking third-party CSS) -->
+  <link rel="preload" href="fonts/yatra-one-subset.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/bangers-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="loading">
-<noscript><p style="font:600 18px system-ui;padding:24px;color:#fff3dc;background:#2a1a10;height:100vh;margin:0">चलो जंतर मंतर needs JavaScript. Please enable it and reload.</p></noscript>
+<noscript><p style="font:600 18px system-ui;padding:24px;color:#fff3dc;background:#2a1a10;height:100vh;margin:0">द जंतर मंतर रन needs JavaScript. Please enable it and reload.</p></noscript>
 <main id="app">
   <canvas id="game" aria-label="Game view"></canvas>
   <div class="halftone" aria-hidden="true"></div>
@@ -75,8 +77,8 @@
   <!-- title -->
   <section id="title" class="screen title hidden">
     <div class="title-wrap">
-      <div class="banner"><h1>चलो जंतर मंतर</h1></div>
-      <div class="tape">THE GREAT DELHI PROTEST RUN</div>
+      <div class="banner"><h1>द जंतर मंतर रन</h1></div>
+      <div class="tape">THE JANTAR MANTAR RUN</div>
       <button id="playBtn" class="placard"><span>PLAY</span></button>
       <p class="hint keys-hint"><kbd>←</kbd><kbd>→</kbd> move &nbsp; <kbd>↑</kbd><kbd>↓</kbd> run / back &nbsp; <kbd>SPACE</kbd> jump</p>
       <p class="hint touch-hint">Hold <kbd>◀</kbd><kbd>▶</kbd> to move · <kbd>▲</kbd> to run · tap <kbd>JUMP</kbd> · swipe up to jump</p>
@@ -135,7 +137,7 @@
     </div>
   </section>
   <!-- persistent game name + credit (after the screens so CSS can hide the logo on the title) -->
-  <div id="brand" class="brand" aria-hidden="true">चलो जंतर मंतर</div>
+  <div id="brand" class="brand" aria-hidden="true">द जंतर मंतर रन</div>
   <div class="credit">
     <div class="credit-txt"><span>Created by</span><b>Pratik Mahajan</b><small>Product Designer</small></div>
     <a id="linkedin" class="li" href="https://www.linkedin.com/in/pratik-j-mahajan/" target="_blank" rel="noopener noreferrer" aria-label="Pratik Mahajan on LinkedIn">

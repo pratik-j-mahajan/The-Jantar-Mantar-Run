@@ -1,4 +1,4 @@
-/* चलो जंतर मंतर — state, input, AI, juice, screens and analytics. */
+/* द जंतर मंतर रन — state, input, AI, juice, screens and analytics. */
 (() => {
   'use strict';
   const S = JM.sprites, E = JM.engine, WD = JM.world, A = JM.audio;
@@ -710,7 +710,7 @@
   $('#share').addEventListener('click', async () => {
     const text = `Main ${char.name} ban ke ${G ? G.time.toFixed(1) : '?'}s mein Jantar Mantar pahunch gaya! Tum try karo:`;
     try {
-      if (navigator.share) await navigator.share({ title: 'चलो जंतर मंतर', text, url: location.href });
+      if (navigator.share) await navigator.share({ title: 'द जंतर मंतर रन', text, url: location.href });
       else { await navigator.clipboard.writeText(text + ' ' + location.href); popCenter('LINK COPIED!', { max: 1, size: 0.5 }); }
     } catch (_) {}
   });
@@ -723,10 +723,10 @@
       b.style.setProperty('--bg', ch.bg);
       b.style.setProperty('--tilt', ((i % 2 ? 1 : -1) * (1 + (i % 3))) + 'deg');
       b.innerHTML = `<canvas></canvas><b>${ch.name}</b><small>${ch.tag}</small><span class="spd">SPEED <i style="--s:${ch.speed}"></i></span>`;
-      b.addEventListener('mouseenter', () => { hover = i; });
+      b.addEventListener('mouseenter', () => { hover = i; warmPlayer(ch); });
       b.addEventListener('mouseleave', () => { if (hover === i) hover = -1; });
       b.addEventListener('focus', () => { hover = i; });
-      b.addEventListener('click', () => { char = ch; store.set('cjm_char', ch.id); track('character_selected', { character: ch.id }); startRun(); });
+      b.addEventListener('click', () => { char = ch; store.set('cjm_char', ch.id); warmPlayer(ch); track('character_selected', { character: ch.id }); startRun(); });
       ui.cards.appendChild(b);
       cardCanvases.push(b.querySelector('canvas'));
     });
@@ -769,16 +769,36 @@
     requestAnimationFrame(frame);
   }
 
+  // pre-render character frames in idle time so nothing has to be drawn mid-run (avoids hitches on phones)
+  const warmQ = [];
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(() => fn({ timeRemaining: () => 8 }), 30));
+  function warm(look, facing, poses) { for (const pose of poses) for (let f = 0; f < S.FRAMES; f++) warmQ.push([look, facing, pose, f]); }
+  function warmTick(dl) {
+    while (warmQ.length && dl.timeRemaining() > 2) { const [l, fc, ps, f] = warmQ.shift(); S.get(l, fc, ps, ps === 'jump' || ps === 'hit' ? 0 : f); }
+    if (warmQ.length) idle(warmTick);
+  }
+  function warmWorld() {
+    for (const l of [...S.POLICE, ...S.PARA]) { warm(l, 'front', ['idle', 'walk']); }
+    for (const l of S.ORANGE) warm(l, 'front', ['walk', 'swing']);
+    for (const l of S.CROWD) warm(l, 'front', ['cheer']);
+    warm(S.MEDIA[0], 'front', ['walk', 'idle']); warm(S.MEDIA[1], 'back', ['walk', 'idle']);
+    for (const l of [...S.POLICE, ...S.PARA]) warm(l, 'back', ['walk']);
+    idle(warmTick);
+  }
+  function warmPlayer(ch) { warmQ.unshift(...(() => { const q = []; for (const p of ['walk', 'idle', 'cheer']) for (let f = 0; f < S.FRAMES; f++) q.push([ch, 'back', p, f]); q.push([ch, 'back', 'jump', 0], [ch, 'back', 'hit', 0]); return q; })()); idle(warmTick); }
+
   function boot() {
     E.init(cv);
     JM.props.build();
     W = WD.build(20251016);
     buildCards();
     document.body.classList.remove('loading');
+    try { performance.mark('jm-ready'); } catch (_) {}
+    warmWorld();
     goTitle();
   }
   const fontLoads = document.fonts ? ['48px "Yatra One"', '48px "Bangers"'].map((f) => document.fonts.load(f).catch(() => {})) : [];
-  Promise.race([Promise.all(fontLoads), new Promise((r) => setTimeout(r, 2500))]).then(boot);
+  Promise.race([Promise.all(fontLoads), new Promise((r) => setTimeout(r, 1200))]).then(boot);
   requestAnimationFrame(frame);
 
   if (/[?&]debug\b/.test(location.search)) {
