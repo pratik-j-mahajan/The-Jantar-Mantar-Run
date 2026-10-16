@@ -1,75 +1,138 @@
 # द जंतर मंतर रन — The Jantar Mantar Run
 
-A comic-style, 3D-looking arcade run down a Delhi road to Jantar Mantar. You pick a protester, switch lanes, jump barricades, and dodge the Dilli Police and the orange-shirt stick squad.
+**Play it:** https://the-jantar-mantar-run.vercel.app
 
-Everything is plain HTML, CSS, and JS. A build step is optional (it just minifies), and there are no image or audio files. The art is drawn with canvas vectors and cached as sprite frames, and the music and sound effects are generated live with WebAudio. The production build is about 42 KB gzipped, plus Google Fonts.
+A satirical, comic-style arcade run down a Delhi road to Jantar Mantar. It looks 3D but is drawn on a plain 2D canvas. You pick a protester and weave past police bus blockades, riot units, barricades and the orange-shirt stick squad, while a YouTube reporter and his camera person chase the story along the footpath.
+
+Created by **Pratik Mahajan**, Product Designer · [LinkedIn](https://www.linkedin.com/in/pratik-j-mahajan/)
+
+---
+
+## How to play
+
+Reach the Jantar Mantar gate at the end of the road.
+
+| | Desktop | Phone |
+|---|---|---|
+| Move left / right | hold ← → (or A / D) | hold ◀ ▶, or swipe for a quick dash |
+| Run forward / step back | hold ↑ / ↓ (or W / S) | hold ▲ / ▼ |
+| Jump | Space | JUMP button, or swipe up |
+| Back to character select | Esc, or the ← BACK button | ← BACK button |
+| Start / retry | Enter | tap the placard |
+
+**Rules**
+- **Barricades:** jump over them. Buses, vans, trucks and water cannons are solid, so go around them.
+- **Police and paramilitary:** if one catches you, you're **detained**. Two officers carry you into a van (5 seconds), then you sit through a 5-second countdown and are released a little way back.
+- **Stick squad:** a hit costs **50% जान** (health). A second hit means **game over**.
+- **Jumping:** you can't be caught while high in a jump.
+- **Your pace:** there's no auto-run. You choose when to sprint and when to wait for a gap.
+
+## What's in the game
+
+- **Five characters:** Neha, Abhijit, NSUI, GenZ and the Ex Minister. Each has its own design and props, and speed varies slightly.
+- **Delhi street, golden hour:** shopfronts with Hindi/English signboards, AC units and hanging wires, colonnaded government buildings, neem trees, autos ("Horn OK Please"), chai stalls, dharna tents, a protest stage, flags and slogan banners.
+- **A chowk:** a roundabout with a fountain and a tall tricolour about halfway along.
+- **Police presence:** DTC and Dilli Police buses parked across the road as blockades, lines of officers with shields, blue- and olive-camo riot units, troop trucks, water cannons, and police vans that charge at you.
+- **Media crew:** "Samdish · Unfiltered" and "Camera Person Parth" run along the footpath with police on their heels. When you're detained, they rush in to film and interview.
+- **Finish:** the Jantar Mantar compound, with the Samrat Yantra, the curved quadrants and the Ram Yantra, plus marigold petals and a "जंतर मंतर / GenZ" win banner.
+- **Soundtrack:** generated live. A daphli protest beat, call-and-response chants ("In-qui-lab! / Zin-da-baad!", "Hum de-khen-ge!", "Aa-waaz do! / Hum ek hain!"), crowd claps, bansuri and harmonium, plus police whistles, sirens, auto horns and a temple bell. The mute button is in the HUD.
+
+This is a lighthearted satire. Every character is a generic cartoon, and the music is original, not copied from any real recording or song.
+
+---
+
+## Tech
+
+Plain HTML, CSS and JavaScript, with no framework and no image or audio assets. The art is drawn with canvas vector code and cached as sprite frames; the sound is synthesized with WebAudio.
 
 ```
-index.html      page, screens, GA4 snippet
-style.css       comic-poster UI (banner title, placard buttons, HUD)
-js/audio.js     dhol/tabla groove, shehnai melody, tanpura drone, whistle, siren, bell
-js/sprites.js   the 5 playable characters + police / stick squad / crowd, sprite cache
-js/engine.js    2.5D renderer: tilted chase camera, lit boxes, textured faces, billboards
-js/props.js     textures: Delhi facades, police vans, autos, barricades, banners, trees
-js/world.js     level layout, chowk, Jantar Mantar compound, world rendering
-js/game.js      game states, input, AI, effects, HUD, analytics
-og-image.jpg    1200×630 share preview (WhatsApp / LinkedIn / X), rendered from the game itself
+index.html            page, screens, HUD, GA4 snippet, social meta tags
+style.css             comic-poster UI (banner title, placard buttons, HUD, panels)
+js/audio.js           music + sound effects (daphli, chants, bansuri, harmonium, whistle, siren, bell)
+js/sprites.js         characters, police, paramilitary, stick squad, crowd, media crew; sprite cache
+js/engine.js          2.5D renderer: chase camera, lit boxes, texture-mapped faces, billboards,
+                      shadows; adaptive quality levels
+js/props.js           textures: Delhi facades, buses, vans, trucks, autos, barricades, banners,
+                      tents, trees, asphalt, pavers
+js/world.js           level layout (blockades, chowk, set dressing) + world rendering
+js/game.js            game states, input, AI, detention sequence, media crew, effects, HUD,
+                      analytics, idle sprite pre-rendering
+fonts/                self-hosted, subsetted woff2 (Yatra One, Bangers, Baloo 2)
+og-image.jpg          1200×630 share preview, rendered from the game itself
 apple-touch-icon.png  home-screen icon
+sw.js                 service worker (repeat visits load from the device)
+build.mjs             production build → dist/
+vercel.json           Vercel build + cache headers
+netlify.toml          Netlify build config
 ```
 
-## Run locally
+### Run locally
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Then open http://localhost:8080. These are the readable source files, with no build step needed.
+Then open http://localhost:8080. The source files run as-is, with no build needed.
 
-## Deploy (built for heavy traffic)
-
-The game runs entirely in each player's browser, so there's no game server to overload. A thousand players at once is just a thousand downloads of about 42 KB (gzipped) from a CDN. For the best result, deploy the **production build**:
+### Production build
 
 ```bash
 npm install
 npm run build
 ```
 
-This creates `dist/`, which contains:
-- one minified JS file and one minified CSS file with content-hashed names (`assets/game.<hash>.js`), cached for a year by browsers and the CDN
-- `index.html` (never cached, so new versions go live instantly)
-- `sw.js`, a service worker. After the first visit, the game loads from the player's own device, so repeat plays barely touch your host.
-- `_headers` (Netlify) and `vercel.json` (Vercel), with the cache rules above
+`dist/` gets one minified JS file and one CSS file with content-hashed names, the fonts, the images, a versioned service worker, and cache headers for Vercel and Netlify. The first visit downloads about **45 KB gzipped of code** plus about **90 KB of fonts**. Code and fonts are cached for a year, so repeat visits load from the device. If esbuild is missing, the build still succeeds; it just skips minification.
 
-Where to host:
-- **Netlify:** connect the repo (it picks up `netlify.toml` and builds automatically), or drag the `dist/` folder onto app.netlify.com/drop.
-- **Vercel:** go to vercel.com/new, import this GitHub repo and click Deploy. `vercel.json` already sets the build command, the output folder and the cache headers. Every push to `main` redeploys automatically.
-- **Cloudflare Pages:** set the build command to `npm run build` and the output to `dist`. Bandwidth is unlimited on the free plan, which is good if it goes viral.
-- **GitHub Pages:** publish the contents of `dist/`. Custom cache headers aren't supported, but the service worker still caches for repeat players.
+### Deploy
 
-### Smooth on every device
+- **Vercel** (current host): import the repo at vercel.com/new and click Deploy. `vercel.json` sets everything up, and every push to `main` redeploys.
+- **Netlify:** connect the repo; `netlify.toml` builds automatically.
+- **Cloudflare Pages:** set the build command to `npm run build` and the output to `dist`.
 
-The game picks a detail level (3 = full, 0 = lightest) and lowers it automatically if a device can't hold about 40 fps during a run. In order, it drops resolution, footpath textures, asphalt texture, cast shadows, clouds, film grain and crowd draw distance. The chosen level is remembered for the player's next visit, and phones and low-core devices start one level lower.
+### Performance
 
-## Google Analytics
+- **Built for heavy traffic:** everything runs in the player's browser, so there is no game server to overload; the CDN just serves static files.
+- **Fast start:** fonts are preloaded from the same origin, and Google Analytics loads only after the game is ready. The game is playable in under a second on a normal connection.
+- **No stutter mid-run:** character poses are pre-rendered in idle time.
+- **Adaptive quality** (levels 3 → 0): if a device can't hold about 40 fps, the game steps down resolution, then ground textures, shadows, clouds, grain and crowd distance. The level is remembered per device.
+- **Crash-safe:** the frame loop survives unexpected errors and reports them to GA.
 
-The game reports to GA4 property `G-4LJWPG03B6`, which is set in `index.html` (it appears twice). To use a different property, change both.
+### Google Analytics
+
+GA4 property `G-4LJWPG03B6`. The ID appears twice in `index.html`, so change both to use a different property.
 
 | Event | When | Params |
 |---|---|---|
 | `character_selected` | a character card is clicked | `character` |
 | `game_start` | every run, retries included | `character`, `attempt` |
-| `player_detained` | caught by police or a police van | `character`, `detentions`, `progress_pct`, `by` |
+| `player_detained` | caught by police / paramilitary / a van | `character`, `detentions`, `progress_pct`, `by` |
 | `player_hit` | caught by the stick squad | `character`, `health_before`, `progress_pct` |
 | `game_over` | the second hit | `character`, `progress_pct`, `time_sec`, `detentions`, `hits` |
 | `game_won` | reached Jantar Mantar | `character`, `time_sec`, `detentions`, `hits`, `health` |
+| `game_quit` | ← BACK / Esc during a run | `character`, `progress_pct`, `time_sec` |
+| `linkedin_click` | the creator's LinkedIn button | `from` |
+| `exception` | an unexpected runtime error | `description`, `fatal` |
 
-To see the params in GA4 reports, register them under Admin → Custom definitions.
+To see the params in GA4 reports, register them under **Admin → Custom definitions** (event scope).
 
-## Controls
+### Tweaking
 
-- **Desktop:** ← → move sideways (hold), ↑ hold to run, ↓ move back, Space to jump, Enter to start or retry.
-- **Mobile:** on-screen ◀ ▶ ▲ ▼ JUMP buttons, plus swipes (left/right dashes sideways, up jumps).
+| Want to change… | Where |
+|---|---|
+| Slogans the crowd chants | `CHANTS` in `js/audio.js` |
+| Music tempo / melody / rhythm | `bpm`, `TUNE`, `PAT` in `js/audio.js` |
+| Characters (names, looks, speed) | `CHARS` in `js/sprites.js` |
+| Blockade positions, trucks, platoons | `BLOCKS`, `TRUCKS`, `platoon(...)` in `js/world.js` |
+| Detention length | `CAPTURE` and `DETAIN_MS` at the top of `js/game.js` |
+| Run speed, jump height | `RUN`, `JUMP_V` at the top of `js/game.js` |
 
-## Testing
+### Testing
 
-Adding `?debug` to the URL exposes `window.__jm`. `__jm.run(seconds)` steps the game deterministically.
+Add `?debug` to the URL to expose `window.__jm`. `__jm.run(seconds)` steps the game deterministically, and `__jm.P`, `__jm.G` and `__jm.W` hold the player, the run stats and the world.
+
+---
+
+## Credits
+
+- Game design, art direction and development: **Pratik Mahajan**
+- Fonts: [Yatra One](https://fonts.google.com/specimen/Yatra+One), [Bangers](https://fonts.google.com/specimen/Bangers) and [Baloo 2](https://fonts.google.com/specimen/Baloo+2), all under the SIL Open Font License

@@ -43,7 +43,10 @@
 <main id="app">
   <canvas id="game" aria-label="Game view"></canvas>
   <div class="halftone" aria-hidden="true"></div>
-  <div class="loader" aria-hidden="true">चलो…</div>
+  <div class="loader" role="status" aria-label="Loading">
+    <div class="ld-name">द जंतर मंतर रन</div>
+    <div class="ld-bar"><i></i></div>
+  </div>
 
   <!-- HUD -->
   <div id="hud" class="hud hidden">
