@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>चलो जंतर मंतर — Chalo Jantar Mantar</title>
+  <meta name="description" content="A comic arcade protest run through Delhi. Dodge the cops, jump the barricades, reach Jantar Mantar.">
+  <meta name="theme-color" content="#d00000">
+  <meta property="og:title" content="चलो जंतर मंतर — Chalo Jantar Mantar">
+  <meta property="og:description" content="Dodge the cops, jump the barricades, reach Jantar Mantar.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d00000'/%3E%3Cpath d='M12 54h40V10z' fill='%23ffd23f' stroke='%231d1424' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+  <!-- Google Analytics (GA4): replace G-XXXXXXXXXX with your Measurement ID (2 places) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=Yatra+One&family=Baloo+2:wght@600;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="loading">
+<main id="app">
+  <canvas id="game" aria-label="Game view"></canvas>
+  <div class="halftone" aria-hidden="true"></div>
+  <div class="loader" aria-hidden="true">चलो…</div>
+
+  <!-- HUD -->
+  <div id="hud" class="hud hidden">
+    <button id="quitBtn" class="hud-back" aria-label="Back to character select">← BACK</button>
+    <div id="hpWrap" class="hp" style="--hp:1">
+      <span class="hp-label">जान</span>
+      <div class="hp-bar"><i class="hp-fill"></i><span class="hp-mid"></span></div>
+      <b id="hpTxt">100%</b>
+    </div>
+    <div class="route">
+      <div class="track"><i id="progFill"></i><span id="runner" class="runner"></span></div>
+      <svg class="jm-mini" viewBox="0 0 40 34" aria-hidden="true"><path d="M3 31h34V3z" fill="#c65d3b" stroke="#1d1424" stroke-width="3" stroke-linejoin="round"/></svg>
+      <span id="dist" class="dist">1108m</span>
+    </div>
+    <div class="stats">
+      <span class="pill">TIME <b id="timer">0.0s</b></span>
+      <span class="pill van">VAN <b id="vans">×0</b></span>
+      <button id="mute" class="mute" aria-label="Toggle sound">♪</button>
+    </div>
+  </div>
+
+  <!-- touch controls -->
+  <div id="pad" class="pad hidden">
+    <div class="pad-l"><button id="bL" aria-label="Left lane">◀</button><button id="bR" aria-label="Right lane">▶</button></div>
+    <div class="pad-r">
+      <div class="ud"><button id="bU" aria-label="Run forward">▲</button><button id="bD" aria-label="Move back">▼</button></div>
+      <button id="bJ" class="jump" aria-label="Jump">JUMP</button>
+    </div>
+  </div>
+
+  <!-- title -->
+  <section id="title" class="screen title hidden">
+    <div class="title-wrap">
+      <div class="banner"><h1>चलो जंतर मंतर</h1></div>
+      <div class="tape">THE GREAT DELHI PROTEST RUN</div>
+      <button id="playBtn" class="placard"><span>PLAY</span></button>
+      <p class="hint"><kbd>←</kbd><kbd>→</kbd> move &nbsp; <kbd>↑</kbd><kbd>↓</kbd> run / back &nbsp; <kbd>SPACE</kbd> jump</p>
+    </div>
+  </section>
+
+  <!-- character select -->
+  <section id="select" class="screen select hidden">
+    <button id="backBtn" class="back">← BACK</button>
+    <div class="sel-head">
+      <h2>कौन चलेगा?</h2>
+      <p>PICK YOUR PROTESTER</p>
+    </div>
+    <div id="cards" class="cards"></div>
+    <div class="legend">
+      <span><i class="dot blue"></i><b>Police</b> = 5 sec van ride</span>
+      <span><i class="dot red"></i><b>Stick squad</b> = −50% जान</span>
+      <span><i class="dot yel"></i><b>Barricade</b> = jump it</span>
+    </div>
+  </section>
+
+  <!-- detained -->
+  <section id="detained" class="screen detain-top hidden">
+    <div class="panel detain">
+      <h2>DETAINED!</h2>
+      <p>Dilli Police ki free van seva.<br>Released in…</p>
+      <div class="siren"><span id="count">5</span></div>
+    </div>
+  </section>
+
+  <!-- game over -->
+  <section id="over" class="screen dimmed hidden">
+    <div class="panel over">
+      <h2>GAME OVER</h2>
+      <p id="overTxt"></p>
+      <div class="row">
+        <button id="retry" class="placard small"><span>TRY AGAIN</span></button>
+      </div>
+      <button id="change1" class="link">Change character</button>
+    </div>
+  </section>
+
+  <!-- win -->
+  <section id="won" class="screen win hidden">
+    <div class="win-top">
+      <div class="banner big"><h1>जंतर मंतर</h1></div>
+      <div class="genz">GenZ</div>
+    </div>
+    <div class="win-bottom">
+      <p id="winStats" class="stats-card"></p>
+      <div class="row">
+        <button id="again" class="placard"><span>PLAY AGAIN</span></button>
+        <button id="share" class="placard alt small"><span>SHARE</span></button>
+      </div>
+      <button id="change2" class="link">Change character</button>
+    </div>
+  </section>
+  <!-- persistent game name + credit (after the screens so CSS can hide the logo on the title) -->
+  <div id="brand" class="brand" aria-hidden="true">चलो जंतर मंतर</div>
+  <div class="credit">
+    <div class="credit-txt"><span>Created by</span><b>Pratik Mahajan</b><small>Product Designer</small></div>
+    <a id="linkedin" class="li" href="https://www.linkedin.com/in/pratik-j-mahajan/" target="_blank" rel="noopener noreferrer" aria-label="Pratik Mahajan on LinkedIn">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.75h4v11H3v-11zm6.5 0h3.8v1.6h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1v5.35h-4v-4.75c0-1.13-.02-2.6-1.58-2.6-1.59 0-1.83 1.24-1.83 2.52v4.83h-4v-11z"/></svg>
+    </a>
+  </div>
+</main>
+<script>
+  // offline/repeat-visit cache (production only: https)
+  if ('serviceWorker' in navigator && location.protocol === 'https:') addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+</script>
+<script src="js/audio.js" defer></script>
+<script src="js/sprites.js" defer></script>
+<script src="js/engine.js" defer></script>
+<script src="js/props.js" defer></script>
+<script src="js/world.js" defer></script>
+<script src="js/game.js" defer></script>
+</body>
+</html>

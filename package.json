@@ -1,0 +1,7 @@
+{
+  "name": "chalo-jantar-mantar",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "node build.mjs" },
+  "devDependencies": { "esbuild": "^0.25.9" }
+}
