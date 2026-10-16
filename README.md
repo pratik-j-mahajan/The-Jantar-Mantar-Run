@@ -50,7 +50,7 @@ The game picks a detail level (3 = full, 0 = lightest) and lowers it automatical
 
 ## Google Analytics
 
-In `index.html`, replace `G-XXXXXXXXXX` (it appears twice) with your GA4 Measurement ID.
+The game reports to GA4 property `G-4LJWPG03B6`, which is set in `index.html` (it appears twice). To use a different property, change both.
 
 | Event | When | Params |
 |---|---|---|
