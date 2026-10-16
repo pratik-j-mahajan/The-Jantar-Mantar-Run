@@ -40,7 +40,7 @@ This creates `dist/`, which contains:
 
 Where to host:
 - **Netlify:** connect the repo (it picks up `netlify.toml` and builds automatically), or drag the `dist/` folder onto app.netlify.com/drop.
-- **Vercel:** set the build command to `npm run build` and the output directory to `dist`, or run `vercel dist`.
+- **Vercel:** go to vercel.com/new, import this GitHub repo and click Deploy. `vercel.json` already sets the build command, the output folder and the cache headers. Every push to `main` redeploys automatically.
 - **Cloudflare Pages:** set the build command to `npm run build` and the output to `dist`. Bandwidth is unlimited on the free plan, which is good if it goes viral.
 - **GitHub Pages:** publish the contents of `dist/`. Custom cache headers aren't supported, but the service worker still caches for repeat players.
 
