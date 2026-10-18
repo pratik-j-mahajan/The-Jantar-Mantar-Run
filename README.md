@@ -106,7 +106,7 @@ npm run build
 
 ### Live visit counter
 
-The small "● 55 clicks" badge shows how many times the game link has been opened since launch (16 Oct 2026), and it updates live for everyone. Plays are still counted in the background but not shown.
+The small "● clicks" badge shows **2000 + the real number of times the game link has been opened** since launch (16 Oct 2026), and it updates live for everyone. The 2000 base is a display offset (`CLICK_BASE` in `js/game.js`); the stored counter keeps the true count, which `node counter-admin.mjs show` prints. Set `CLICK_BASE = 0` to show the real number. Plays are still counted in the background but not shown.
 - **What each number counts:**
   - **visits**: the game was opened, counted once per browser tab session, so reloads don't inflate it.
   - **plays**: a run was started, counted every time, retries included.

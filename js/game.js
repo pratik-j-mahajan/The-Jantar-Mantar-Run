@@ -822,15 +822,16 @@
   // Free Abacus counter API. Open pages get every change pushed live over server-sent events (polling fallback).
   // If the service is unreachable the badge stays hidden; the game never depends on it.
   const COUNTER = 'https://abacus.jasoncameron.dev', CNS = 'the-jantar-mantar-run';
+  const CLICK_BASE = 2000; // shown = base + real clicks (the stored counter keeps the true count)
   const testVisit = /^(localhost|127\.|\[::1\])/.test(location.hostname) || /[?&]debug\b/.test(location.search);
   const counters = {};
-  function liveCounter(key, el) {
+  function liveCounter(key, el, base = 0) {
     const box = $('#visits');
     let shown = -1, es = null, poll = null;
     const set = (v) => {
       if (!el || typeof v !== 'number' || v < 0) return;
       if (shown >= 0 && v !== shown) { box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump'); }
-      shown = v; el.textContent = v.toLocaleString('en-IN'); show(box);
+      shown = v; el.textContent = (base + v).toLocaleString('en-IN'); show(box);
     };
     const req = (op) => fetch(`${COUNTER}/${op}/${CNS}/${key}`).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j) set(j.value); return j; }).catch(() => null);
     const pollOnce = () => req('get');
@@ -847,7 +848,7 @@
   }
   function initVisits() {
     if (!$('#visits')) return;
-    counters.visits = liveCounter('visits', $('#visitsNum'));
+    counters.visits = liveCounter('visits', $('#visitsNum'), CLICK_BASE);
     counters.plays = liveCounter('plays', null); // counted, not shown
     let counted = false;
     try { counted = sessionStorage.getItem('cjm_counted') === '1'; } catch (_) {}
