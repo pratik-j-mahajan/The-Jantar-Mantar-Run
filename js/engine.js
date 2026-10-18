@@ -6,20 +6,20 @@ window.JM = window.JM || {};
 JM.quality = (() => {
   const LEVELS = [
     // maxPx = total canvas pixel budget: big/Retina screens render at a capped resolution and are upscaled smoothly
-    { dprCap: 0.75, maxPx: 0.5e6, groundTex: false, pavers: false, shadows: false, clouds: false, grain: false, crowdRange: 35 },
-    { dprCap: 1.0, maxPx: 0.9e6, groundTex: false, pavers: false, shadows: false, clouds: false, grain: false, crowdRange: 45 },
-    { dprCap: 1.35, maxPx: 1.5e6, groundTex: true, pavers: false, shadows: true, clouds: true, grain: true, crowdRange: 60 },
-    { dprCap: 1.6, maxPx: 2.4e6, groundTex: true, pavers: true, shadows: true, clouds: true, grain: true, crowdRange: 70 },
+    { dprCap: 1.0, maxPx: 0.5e6, groundTex: false, pavers: false, shadows: false, clouds: false, grain: false, crowdRange: 35 },
+    { dprCap: 1.5, maxPx: 0.9e6, groundTex: false, pavers: false, shadows: false, clouds: false, grain: false, crowdRange: 45 },
+    { dprCap: 2.0, maxPx: 1.5e6, groundTex: true, pavers: false, shadows: true, clouds: true, grain: true, crowdRange: 60 },
+    { dprCap: 2.0, maxPx: 2.4e6, groundTex: true, pavers: true, shadows: true, clouds: true, grain: true, crowdRange: 70 },
   ];
   let saved = null;
-  try { saved = localStorage.getItem('cjm_q'); } catch (_) {}
-  const weak = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 3 || matchMedia('(pointer: coarse)').matches;
+  try { saved = localStorage.getItem('cjm_q2'); } catch (_) {} // v2: fresh start after the mobile-quality fix
+  const weak = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 3;
   const q = { level: saved != null ? +saved : weak ? 1 : 2 };
   q.set = (lv) => {
     q.level = Math.max(0, Math.min(3, lv));
     Object.assign(q, LEVELS[q.level]);
     document.documentElement.classList.toggle('lowfx', !q.grain);
-    try { localStorage.setItem('cjm_q', String(q.level)); } catch (_) {}
+    try { localStorage.setItem('cjm_q2', String(q.level)); } catch (_) {}
     if (JM.engine && JM.engine.c) JM.engine.resize();
   };
   q.set(q.level);

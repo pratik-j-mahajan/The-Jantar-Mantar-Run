@@ -28,7 +28,7 @@
   let W = null, P = null, G = null;
   let flashPhoto = 0, parts = [], pops = [], shake = 0, flash = 0, attempts = 0, attractD = 20, lastTimer = '', hover = -1;
   const camS = { x: 0, d: 0, h: 5.6, p: 0.36 };
-  const inp = { up: false, down: false, left: false, right: false, jumpQ: false };
+  const inp = { up: false, down: false, left: false, right: false, jumpQ: false, stick: false, ax: 0, ay: 0 };
   const SIDE = 8.5, EDGE = 6.4;
   const setMode = (m) => { mode = m; modeT = 0; };
   let HZ = null; // water cannons + tear gas (js/hazards.js)
@@ -302,13 +302,15 @@
     P.inv = Math.max(0, P.inv - dt); P.bumpCD = Math.max(0, P.bumpCD - dt);
     P.gas = Math.max(0, (P.gas || 0) - dt);
     const slow = P.gas > 0 ? 0.55 : 1; // coughing in tear gas
-    const target = (inp.up ? RUN * char.speed : inp.down ? -BACK : 0) * slow;
+    // analog: joystick gives -1..1 on each axis (distance = speed); keyboard gives full -1/0/1
+    const ay = inp.stick ? inp.ay : (inp.up ? 1 : 0) - (inp.down ? 1 : 0);
+    const target = (ay > 0 ? ay * RUN * char.speed : ay * BACK) * slow;
     P.vd += (target - P.vd) * Math.min(1, dt * (target ? 6 : 9));
     const nd = clamp(P.d + P.vd * dt, 2, GOAL + 2);
     if (!WD.blocked(W, P.x, nd, P.z)) P.d = nd;
     else { if (Math.abs(P.vd) > 3) bump(); P.vd = 0; }
     // free sideways movement: accelerate while held, glide to a stop on release
-    const sx = (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
+    const sx = inp.stick ? inp.ax : (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
     P.vx += (sx * SIDE * slow - P.vx) * Math.min(1, dt * (sx ? 9 : 7));
     if (Math.abs(P.vx) < 0.02) P.vx = 0;
     const nx = clamp(P.x + P.vx * dt, -EDGE, EDGE);
@@ -687,7 +689,7 @@
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') inp.left = false;
     if (e.code === 'ArrowRight' || e.code === 'KeyD') inp.right = false;
   });
-  addEventListener('blur', () => { inp.up = inp.down = inp.left = inp.right = false; });
+  addEventListener('blur', () => { inp.up = inp.down = inp.left = inp.right = inp.stick = false; inp.ax = inp.ay = 0; });
   document.addEventListener('visibilitychange', () => { A.pause(document.hidden); if (document.hidden) inp.up = inp.down = inp.left = inp.right = false; });
   addEventListener('touchstart', () => document.body.classList.add('touch'), { once: true, passive: true });
 
@@ -698,10 +700,31 @@
     b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end);
     b.addEventListener('contextmenu', (e) => e.preventDefault());
   }
-  padBtn('#bL', () => { inp.left = true; }, () => { inp.left = false; });
-  padBtn('#bR', () => { inp.right = true; }, () => { inp.right = false; });
-  padBtn('#bU', () => { inp.up = true; }, () => { inp.up = false; });
-  padBtn('#bD', () => { inp.down = true; }, () => { inp.down = false; });
+  // analog joystick: knob follows the finger inside the ring; how far you stretch = how fast you go
+  const stick = $('#stick'), knob = stick.querySelector('.stick-knob');
+  let stickId = null;
+  function stickSet(e) {
+    const r = stick.getBoundingClientRect(), R = r.width / 2, reach = R * 0.62;
+    let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
+    const d = Math.hypot(dx, dy), m = Math.min(d, reach);
+    if (d > 0) { dx = (dx / d) * m; dy = (dy / d) * m; }
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    let ax = dx / reach, ay = -dy / reach;
+    const mag = Math.hypot(ax, ay);
+    if (mag < 0.15) { ax = 0; ay = 0; }                       // small dead zone at the centre
+    else { const k = (mag - 0.15) / 0.85 / mag; ax *= k; ay *= k; } // rescale so speed ramps smoothly from 0
+    inp.stick = true; inp.ax = clamp(ax, -1, 1); inp.ay = clamp(ay, -1, 1);
+  }
+  function stickEnd(e) {
+    if (e.pointerId !== stickId) return;
+    stickId = null; stick.classList.remove('active');
+    knob.style.transform = ''; inp.stick = false; inp.ax = inp.ay = 0;
+  }
+  stick.addEventListener('pointerdown', (e) => { e.preventDefault(); stickId = e.pointerId; try { stick.setPointerCapture(e.pointerId); } catch (_) {} stick.classList.add('active'); stickSet(e); });
+  stick.addEventListener('pointermove', (e) => { if (e.pointerId === stickId) stickSet(e); });
+  stick.addEventListener('pointerup', stickEnd);
+  stick.addEventListener('pointercancel', stickEnd);
+  stick.addEventListener('contextmenu', (e) => e.preventDefault());
   padBtn('#bJ', () => { if (mode === 'play') inp.jumpQ = true; });
   // swipe on the canvas: left/right = lane, up = jump
   let sw = null;

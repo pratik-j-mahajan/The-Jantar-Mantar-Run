@@ -70,11 +70,11 @@
 
   <!-- touch controls -->
   <div id="pad" class="pad hidden">
-    <div class="pad-l"><button id="bL" aria-label="Left lane">◀</button><button id="bR" aria-label="Right lane">▶</button></div>
-    <div class="pad-r">
-      <div class="ud"><button id="bU" aria-label="Run forward">▲</button><button id="bD" aria-label="Move back">▼</button></div>
-      <button id="bJ" class="jump" aria-label="Jump">JUMP</button>
+    <div id="stick" class="stick" role="application" aria-label="Joystick: drag to move, further = faster">
+      <span class="st-arrow up"></span><span class="st-arrow right"></span><span class="st-arrow down"></span><span class="st-arrow left"></span>
+      <div class="stick-knob"></div>
     </div>
+    <button id="bJ" class="jump" aria-label="Jump">JUMP</button>
   </div>
 
   <!-- title -->
@@ -84,7 +84,7 @@
       <div class="tape">THE JANTAR MANTAR RUN</div>
       <button id="playBtn" class="placard"><span>PLAY</span></button>
       <p class="hint keys-hint"><kbd>←</kbd><kbd>→</kbd> move &nbsp; <kbd>↑</kbd><kbd>↓</kbd> run / back &nbsp; <kbd>SPACE</kbd> jump</p>
-      <p class="hint touch-hint">Hold <kbd>◀</kbd><kbd>▶</kbd> to move · <kbd>▲</kbd> to run · tap <kbd>JUMP</kbd> · swipe up to jump</p>
+      <p class="hint touch-hint">Drag the joystick to move (further = faster) · tap <kbd>JUMP</kbd></p>
     </div>
   </section>
 

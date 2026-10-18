@@ -14,8 +14,8 @@ Reach the Jantar Mantar gate at the end of the road.
 
 | | Desktop | Phone |
 |---|---|---|
-| Move left / right | hold ← → (or A / D) | hold ◀ ▶, or swipe for a quick dash |
-| Run forward / step back | hold ↑ / ↓ (or W / S) | hold ▲ / ▼ |
+| Move left / right | hold ← → (or A / D) | drag the joystick (further = faster), or swipe for a quick dash |
+| Run forward / step back | hold ↑ / ↓ (or W / S) | drag the joystick up / down (further = faster) |
 | Jump | Space | JUMP button, or swipe up |
 | Back to character select | Esc, or the ← BACK button | ← BACK button |
 | Start / retry | Enter | tap the placard |

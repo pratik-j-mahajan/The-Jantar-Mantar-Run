@@ -338,3 +338,26 @@ kbd { text-shadow: none; -webkit-text-stroke: 0; background: #fffaf0; color: #1d
 }
 @media (prefers-reduced-motion: reduce) { .live-dot, .visits.bump b { animation: none; } }
 .visits .v-sep { opacity: .5; margin: 0 1px; }
+
+/* analog joystick (touch): drag the knob, distance from centre = speed */
+.stick {
+  position: relative; width: 140px; height: 140px; border-radius: 50%; pointer-events: auto; touch-action: none;
+  background: radial-gradient(circle, rgba(255, 243, 220, .22) 0%, rgba(255, 243, 220, .08) 62%, rgba(29, 20, 36, .25) 100%);
+  border: 3px solid rgba(255, 243, 220, .75); box-shadow: inset 0 0 22px rgba(0, 0, 0, .35), 0 4px 0 rgba(29, 20, 36, .55);
+}
+.stick-knob {
+  position: absolute; left: 50%; top: 50%; width: 62px; height: 62px; margin: -31px 0 0 -31px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff8e1, #ffd23f 45%, #d99a00); border: 3px solid var(--ink);
+  box-shadow: 0 5px 0 var(--ink), inset 0 -4px 8px rgba(0, 0, 0, .18); transition: transform .14s cubic-bezier(.3, 1.6, .5, 1);
+}
+.stick.active .stick-knob { transition: none; box-shadow: 0 2px 0 var(--ink), 0 0 0 6px rgba(255, 210, 63, .25); }
+.st-arrow { position: absolute; width: 0; height: 0; border: 7px solid transparent; opacity: .65; }
+.st-arrow.up { top: 8px; left: 50%; margin-left: -7px; border-bottom-color: #fff3dc; }
+.st-arrow.down { bottom: 8px; left: 50%; margin-left: -7px; border-top-color: #fff3dc; }
+.st-arrow.left { left: 8px; top: 50%; margin-top: -7px; border-right-color: #fff3dc; }
+.st-arrow.right { right: 8px; top: 50%; margin-top: -7px; border-left-color: #fff3dc; }
+@media (hover: none), (pointer: coarse) {
+  /* name badge + counter sit above the joystick */
+  .brand { bottom: calc(166px + env(safe-area-inset-bottom)); }
+  .visits { bottom: calc(206px + env(safe-area-inset-bottom)); }
+}
