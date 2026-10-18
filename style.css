@@ -361,3 +361,9 @@ kbd { text-shadow: none; -webkit-text-stroke: 0; background: #fffaf0; color: #1d
   .brand { bottom: calc(166px + env(safe-area-inset-bottom)); }
   .visits { bottom: calc(206px + env(safe-area-inset-bottom)); }
 }
+/* touch layout: joystick on the right, JUMP on the left */
+#pad { flex-direction: row-reverse; }
+@media (hover: none), (pointer: coarse) {
+  .credit { bottom: calc(168px + env(safe-area-inset-bottom)); }
+  #pad.hidden ~ .credit { bottom: calc(14px + env(safe-area-inset-bottom)); }
+}
