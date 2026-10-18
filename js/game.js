@@ -828,7 +828,7 @@
     const box = $('#visits');
     let shown = -1, es = null, poll = null;
     const set = (v) => {
-      if (typeof v !== 'number' || v < 0) return;
+      if (!el || typeof v !== 'number' || v < 0) return;
       if (shown >= 0 && v !== shown) { box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump'); }
       shown = v; el.textContent = v.toLocaleString('en-IN'); show(box);
     };
@@ -848,13 +848,12 @@
   function initVisits() {
     if (!$('#visits')) return;
     counters.visits = liveCounter('visits', $('#visitsNum'));
-    counters.plays = liveCounter('plays', $('#playsNum'));
+    counters.plays = liveCounter('plays', null); // counted, not shown
     let counted = false;
     try { counted = sessionStorage.getItem('cjm_counted') === '1'; } catch (_) {}
     if (!counted && !testVisit) counters.visits.hit().then((j) => { if (j) try { sessionStorage.setItem('cjm_counted', '1'); } catch (_) {} });
     else counters.visits.req('get');
-    counters.plays.req('get');
-    counters.visits.start(); counters.plays.start();
+    counters.visits.start();
   }
 
   function boot() {
