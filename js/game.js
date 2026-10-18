@@ -31,6 +31,7 @@
   const inp = { up: false, down: false, left: false, right: false, jumpQ: false };
   const SIDE = 8.5, EDGE = 6.4;
   const setMode = (m) => { mode = m; modeT = 0; };
+  let HZ = null; // water cannons + tear gas (js/hazards.js)
   const progress = () => (P ? clamp((P.d - 6) / (GOAL - 6), 0, 1) : 0);
   const pct = () => Math.round(progress() * 100);
 
@@ -243,8 +244,9 @@
   function startRun() {
     A.init();
     W = WD.build((Math.random() * 1e9) | 0);
-    P = { lane: 2, x: 0, vx: 0, d: 6, z: 0, vz: 0, vd: 0, inv: 0, sx: 1, sy: 1, phase: 0, tilt: 0, rot: 0, kb: 0, facing: 'back', hidden: false, walk: false, cheer: false, bumpCD: 0 };
-    G = { health: 100, detentions: 0, hits: 0, time: 0, until: 0, van: null, catcher: null, from: null, almost: false, half: false, shown: 0 };
+    HZ.reset(W);
+    P = { lane: 2, x: 0, vx: 0, d: 6, z: 0, vz: 0, vd: 0, inv: 0, sx: 1, sy: 1, phase: 0, tilt: 0, rot: 0, kb: 0, kbx: 0, kbd: 0, gas: 0, facing: 'back', hidden: false, walk: false, cheer: false, bumpCD: 0 };
+    G = { health: 100, cause: 'stick', detentions: 0, hits: 0, time: 0, until: 0, van: null, catcher: null, from: null, almost: false, half: false, shown: 0 };
     parts = []; pops = []; shake = 0; flash = 0;
     inp.up = inp.down = inp.left = inp.right = inp.jumpQ = false;
     attempts++;
@@ -297,14 +299,16 @@
   }
   function updatePlayer(dt) {
     P.inv = Math.max(0, P.inv - dt); P.bumpCD = Math.max(0, P.bumpCD - dt);
-    const target = inp.up ? RUN * char.speed : inp.down ? -BACK : 0;
+    P.gas = Math.max(0, (P.gas || 0) - dt);
+    const slow = P.gas > 0 ? 0.55 : 1; // coughing in tear gas
+    const target = (inp.up ? RUN * char.speed : inp.down ? -BACK : 0) * slow;
     P.vd += (target - P.vd) * Math.min(1, dt * (target ? 6 : 9));
     const nd = clamp(P.d + P.vd * dt, 2, GOAL + 2);
     if (!WD.blocked(W, P.x, nd, P.z)) P.d = nd;
     else { if (Math.abs(P.vd) > 3) bump(); P.vd = 0; }
     // free sideways movement: accelerate while held, glide to a stop on release
     const sx = (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
-    P.vx += (sx * SIDE - P.vx) * Math.min(1, dt * (sx ? 9 : 7));
+    P.vx += (sx * SIDE * slow - P.vx) * Math.min(1, dt * (sx ? 9 : 7));
     if (Math.abs(P.vx) < 0.02) P.vx = 0;
     const nx = clamp(P.x + P.vx * dt, -EDGE, EDGE);
     if (nx !== P.x) {
@@ -391,6 +395,7 @@
 
   function caught(f) { if (f.type === 'police') detain(f, null); else hit(f); }
   function detain(f, van) {
+    HZ.stop();
     G.detentions++;
     setMode('detaining');
     A.whistle(); A.duck(true);
@@ -432,21 +437,32 @@
     A.count(0);
     setMode('play');
   }
-  function hit(f) {
+  // one health meter for everything that hurts: stick squad 50, water cannon 30, tear gas 20
+  function damage(amount, cause, o = {}) {
+    if (!P || mode !== 'play' || P.inv > 0) return false;
     G.hits++;
-    track('player_hit', { character: char.id, health_before: G.health, progress_pct: pct() });
-    A.dhishum(); flash = 1; shake = 0.7;
+    const before = G.health;
+    G.health = Math.max(0, G.health - amount); G.cause = cause;
+    track('player_hit', { character: char.id, by: cause, damage: amount, health_before: before, progress_pct: pct() });
+    flash = cause === 'gas' ? 0.35 : cause === 'water' ? 0.5 : 1; shake = cause === 'gas' ? 0.25 : 0.7;
+    ui.hpWrap.classList.remove('shake'); void ui.hpWrap.offsetWidth; ui.hpWrap.classList.add('shake');
+    if (G.health <= 0) {
+      setMode('dying'); A.sad(); HZ.stop();
+      track('game_over', { character: char.id, by: cause, progress_pct: pct(), time_sec: Math.round(G.time), detentions: G.detentions, hits: G.hits });
+    } else if (o.knock) {
+      P.vd = 0; P.vx = 0; P.kbx = o.knock[0]; P.kbd = o.knock[1];
+      if (o.hop) { P.vz = o.hop; P.z = Math.max(P.z, 0.01); }
+      setMode('hit');
+    } else P.inv = 1.5;
+    updateHud();
+    return true;
+  }
+  function hit(f) {
+    f.cool = 3.5; f.state = 'return';
+    if (!damage(50, 'stick', { knock: [0, -4.5] })) return;
+    A.dhishum();
     pop('burst', 'DHISHUM!', P.x, P.d, 2.2, { bg: '#ffd23f', col: '#e63946', max: 1.1, size: 1.2 });
     stars(P.x, P.d, 1.6, 10);
-    f.cool = 3.5; f.state = 'return';
-    P.vd = 0; P.kb = 4.5;
-    ui.hpWrap.classList.remove('shake'); void ui.hpWrap.offsetWidth; ui.hpWrap.classList.add('shake');
-    if (G.health > 50) { G.health = 50; setMode('hit'); }
-    else {
-      G.health = 0; setMode('dying'); A.sad();
-      track('game_over', { character: char.id, progress_pct: pct(), time_sec: Math.round(G.time), detentions: G.detentions, hits: G.hits });
-    }
-    updateHud();
   }
   function win() {
     setMode('winning');
@@ -468,6 +484,7 @@
     modeT += dt;
     shake = Math.max(0, shake - dt * 1.6); flash = Math.max(0, flash - dt * 2.4); flashPhoto = Math.max(0, flashPhoto - dt * 2.5);
     updateParts(dt);
+    if (HZ && W && mode !== 'boot') HZ.update(dt);
     if (W && mode !== 'boot') updateMedia(dt);
     if (W) { for (const p of W.crowd) p.t += dt * 0.2; }
     switch (mode) {
@@ -548,10 +565,12 @@
       }
       case 'hit': {
         G.time += dt;
-        const s = Math.min(P.kb, dt * 14);
-        if (!WD.blocked(W, P.x, P.d - s, 0)) P.d -= s;
-        P.kb -= s;
-        P.rot = Math.sin(modeT * 22) * 0.35 * (1 - modeT);
+        const k = Math.min(1, dt * 7), mx = P.kbx * k, md = P.kbd * k;
+        const nx = clamp(P.x + mx, -6.4, 6.4), nd = clamp(P.d + md, 2, GOAL - 1);
+        if (!WD.blocked(W, nx, nd, P.z)) { P.x = nx; P.d = nd; }
+        P.kbx -= mx; P.kbd -= md;
+        if (P.z > 0 || P.vz > 0) { P.vz -= GRAV * dt; P.z = Math.max(0, P.z + P.vz * dt); if (P.z === 0) { P.vz = 0; puff(P.x, P.d, 8); } }
+        P.rot = G.cause === 'water' ? Math.min(modeT * 9, 6.28) * (modeT < 0.7 ? 1 : 0) : Math.sin(modeT * 22) * 0.35 * (1 - modeT);
         updateFoes(dt);
         if (modeT > 0.9) { P.rot = 0; P.inv = 2; setMode('play'); }
         break;
@@ -559,7 +578,8 @@
       case 'dying':
         P.rot = Math.min(1.45, modeT * 2.2);
         if (modeT > 1.0 && ui.over.classList.contains('hidden')) {
-          ui.overTxt.textContent = `The stick squad got you twice at ${pct()}% of the way. Have some haldi-doodh and go again.`;
+          const why = { stick: 'The stick squad got you', water: 'The water cannon knocked you flat', gas: 'Too much tear gas' }[G.cause] || 'You went down';
+          ui.overTxt.textContent = `${why} at ${pct()}% of the way. Have some haldi-doodh and go again.`;
           show(ui.over); show(ui.pad, false); setMode('over');
         }
         break;
@@ -626,6 +646,7 @@
     }
     for (const f of W.foes) if (!f.hidden && f.d > cd + 0.6 && f.d < cd + 90) L.push({ x: f.x, d: f.d, shadow: 0.55, f: () => drawFoe(f) });
     mediaDyn(L, cd);
+    if (HZ) HZ.dyn(L);
     for (const p of parts) L.push({ d: p.d, f: () => drawPart(p) });
     return L;
   }
@@ -634,6 +655,7 @@
     c.save();
     if (shake > 0.02) c.translate(rand(-1, 1) * shake * 22 * E.dpr, rand(-1, 1) * shake * 22 * E.dpr);
     WD.render(W, clock, dyn());
+    HZ.drawScreen();
     speedLines();
     drawPops(dt);
     c.restore();
@@ -693,6 +715,7 @@
 
   // ---------- screens ----------
   function quitRun() {
+    if (HZ) HZ.stop();
     if (!G || !['count', 'play', 'detaining', 'detained', 'hit'].includes(mode)) return;
     track('game_quit', { character: char.id, progress_pct: pct(), time_sec: Math.round(G.time) });
     inp.up = inp.down = inp.left = inp.right = inp.jumpQ = false;
@@ -793,6 +816,8 @@
     E.init(cv);
     JM.props.build();
     W = WD.build(20251016);
+    HZ = JM.hazards.create({ P: () => P, mode: () => mode, damage, pop });
+    HZ.reset(W);
     buildCards();
     document.body.classList.remove('loading');
     try { performance.mark('jm-ready'); } catch (_) {}
@@ -804,7 +829,7 @@
   requestAnimationFrame(frame);
 
   if (/[?&]debug\b/.test(location.search)) {
-    window.__jm = { get P() { return P; }, get G() { return G; }, get W() { return W; }, get mode() { return mode; }, inp, startRun, step, setMode, nudge, media,
+    window.__jm = { get P() { return P; }, get G() { return G; }, get W() { return W; }, get mode() { return mode; }, inp, startRun, step, setMode, nudge, media, get HZ() { return HZ; },
       run(sec) { let now = performance.now(); for (let i = 0; i < Math.round(sec * 60); i++) { now += 1000 / 60; clock += 1 / 60; step(1 / 60, now); updateCam(1 / 60); } render(1 / 60); if (P) hudFrame(); return mode; } };
   }
 })();

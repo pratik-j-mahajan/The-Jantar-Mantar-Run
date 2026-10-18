@@ -50,7 +50,7 @@ JM.world = (() => {
 
     // ---- police bus blockades: buses parked across the road, a wide gap guarded by slow officers ----
     const BLOCKS = [95, 178, 330, 398, 468];
-    const CANNONS = [[5.15, 252], [-5.15, 432]];
+    const CANNONS = [[5.15, 205], [5.15, 252], [-5.15, 302], [-5.15, 432]];
     const TRUCKS = [[-5.15, 150], [5.15, 372], [-5.15, 520]];
     const reserved = (d) => BLOCKS.some((b) => d > b - 11 && d < b + 16) || CANNONS.some(([, cd]) => Math.abs(d - cd) < 8) || TRUCKS.some(([, td]) => Math.abs(d - td) < 9);
     const policeLine = (x0, x1, d, n, looks = S.POLICE) => { for (let k = 0; k < n; k++) W.guards.push({ x: x0 + ((x1 - x0) * (k + 0.5)) / n, d, look: looks[k % looks.length], t: R() * 6 }); };
@@ -119,6 +119,13 @@ JM.world = (() => {
     for (let d = 120; d < 520; d += 46 + R() * 20) if (!reserved(d) && !inChowk(d, 15)) W.foes.push(para(LANES[(R() * 5) | 0], d));
     W.foes.push(para(-4, GOAL - 30), para(0, GOAL - 12));
     W.foes.push(makeFoe(R, 'police', -2.5, GOAL - 16, 1), makeFoe(R, 'orange', 2.5, GOAL - 24, 1), makeFoe(R, 'police', 4, GOAL - 9, 1));
+    // street detail: manholes, patched potholes, leaflets from the protest, slippers lost in scuffles
+    W.decals = [];
+    for (let d = 20; d < 548; d += 14 + R() * 18) if (!inChowk(d, 14)) W.decals.push({ type: 'manhole', x: (R() < 0.5 ? -1 : 1) * (1.3 + R() * 4), d });
+    for (let d = 35; d < 548; d += 30 + R() * 40) if (!inChowk(d, 14)) W.decals.push({ type: 'patch', x: -6 + R() * 12, d, w: 0.8 + R() * 1.4, h: 0.6 + R() * 1, rot: R() * 3 });
+    const LEAF = ['#fff3dc', '#ffd166', '#f1faee', '#ffafcc', '#caf0f8'];
+    for (const b of [...BLOCKS, ...W.tents.map((t) => t.d0 + 4)]) for (let k = 0; k < 9; k++) W.decals.push({ type: 'leaf', x: -6.8 + R() * 17.6 * (R() < 0.5 ? 1 : 0.6), d: b - 6 + R() * 12, rot: R() * 3, col: LEAF[(R() * 5) | 0] });
+    for (const b of BLOCKS) for (let k = 0; k < 2; k++) W.decals.push({ type: 'chappal', x: -5 + R() * 10, d: b - 3 - R() * 4, rot: R() * 3, col: R() < 0.5 ? '#1d3557' : '#9d0208' });
     return W;
   }
 
@@ -157,6 +164,7 @@ JM.world = (() => {
       }
     }
     c.fillStyle = 'rgba(255,248,220,.9)'; c.beginPath(); c.arc(W * 0.18, hy - H * 0.1, H * 0.035, 0, Math.PI * 2); c.fill();
+    drawBirds(t);
     // distant hazy skyline with parallax
     const off = -e.cam.x * 6 * e.dpr;
     c.fillStyle = 'rgba(214,150,105,.55)';
@@ -287,7 +295,6 @@ JM.world = (() => {
     const e = E(), Tx = T();
     e.box(cn.x - 1.2, cn.x + 1.2, cn.d - 3.3, cn.d + 3.3, 0.15, 2.9, '#1d3557', { tex: { left: Tx.cannon, right: Tx.cannon, front: Tx.busEnd.police }, cols: 3 });
     e.box(cn.x - 0.45, cn.x + 0.45, cn.d - 2.3, cn.d - 1.4, 2.9, 3.45, '#adb5bd', { lw: 1.6 });
-    e.box(cn.x - 0.12, cn.x + 0.12, cn.d - 3.4, cn.d - 2.3, 3.15, 3.35, '#6c757d', { lw: 1.4 });
   }
   function drawTruck(tk) {
     const e = E(), Tx = T();
@@ -326,6 +333,46 @@ JM.world = (() => {
     c.beginPath(); c.moveTo(p.x - w, p.y); c.lineTo(p.x - w * 0.18, p.y - h); c.lineTo(p.x + w * 0.18, p.y - h); c.lineTo(p.x + w, p.y); c.closePath();
     c.fillStyle = '#ff6b1a'; c.fill(); c.lineWidth = 1.5 * e.dpr; c.strokeStyle = e.EDGE; c.stroke();
     c.fillStyle = '#fff'; c.fillRect(p.x - w * 0.55, p.y - h * 0.55, w * 1.1, h * 0.16);
+  }
+
+  function drawDecals(W, cd) {
+    const e = E();
+    for (const k of W.decals) {
+      if (k.d < cd + 1 || k.d > cd + 55) continue;
+      if (k.type === 'manhole') {
+        const ring = (r, h) => { const pts = []; for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2; pts.push([k.x + Math.cos(a) * r, k.d + Math.sin(a) * r, h]); } return pts; };
+        e.fillW(ring(0.42, 0.005), '#3a3b40', 'rgba(20,20,22,.6)', 1);
+        e.fillW(ring(0.32, 0.006), '#4a4b52');
+        for (let i = -1; i <= 1; i++) e.fillW([[k.x - 0.28, k.d + i * 0.12 - 0.02, 0.007], [k.x + 0.28, k.d + i * 0.12 - 0.02, 0.007], [k.x + 0.28, k.d + i * 0.12 + 0.02, 0.007], [k.x - 0.28, k.d + i * 0.12 + 0.02, 0.007]], 'rgba(25,25,28,.55)');
+      } else {
+        const w = k.type === 'patch' ? k.w : k.type === 'leaf' ? 0.32 : 0.14, h = k.type === 'patch' ? k.h : k.type === 'leaf' ? 0.22 : 0.3;
+        const c = Math.cos(k.rot), s = Math.sin(k.rot), pt = (u, v) => [k.x + u * c - v * s, k.d + u * s + v * c, 0.006];
+        const col = k.type === 'patch' ? 'rgba(38,38,44,.55)' : k.col;
+        e.fillW([pt(-w / 2, -h / 2), pt(w / 2, -h / 2), pt(w / 2, h / 2), pt(-w / 2, h / 2)], col, k.type === 'patch' ? null : 'rgba(30,20,20,.35)', 1);
+        if (k.type === 'chappal') e.fillW([pt(-w / 2 + 0.24, -h / 2), pt(w / 2 + 0.24, -h / 2), pt(w / 2 + 0.24, h / 2), pt(-w / 2 + 0.24, h / 2)], k.col, 'rgba(30,20,20,.35)', 1);
+      }
+    }
+  }
+  // a flock of pigeons crosses the sky every so often
+  function drawBirds(t) {
+    const e = E(), c = e.c, hy = e.horizonY(), cyc = 22, k = (t % cyc) / cyc;
+    if (k > 0.45) return;
+    const W2 = e.W, u = k / 0.45, base = -0.1 * W2 + u * W2 * 1.2, y0 = Math.max(e.H * 0.04, hy - e.H * 0.12) + Math.sin(t * 0.7) * 6;
+    c.strokeStyle = 'rgba(60,45,40,.75)'; c.lineWidth = 1.6 * e.dpr; c.lineCap = 'round';
+    for (let i = 0; i < 9; i++) {
+      const x = base - (i % 3) * 22 * e.dpr - Math.floor(i / 3) * 15 * e.dpr, y = y0 + ((i * 37) % 23) * e.dpr - Math.floor(i / 3) * 8 * e.dpr;
+      const f = Math.sin(t * 12 + i) * 4 * e.dpr, s = 6 * e.dpr;
+      c.beginPath(); c.moveTo(x - s, y - f); c.quadraticCurveTo(x - s * 0.4, y - s * 0.2, x, y); c.quadraticCurveTo(x + s * 0.4, y - s * 0.2, x + s, y - f); c.stroke();
+    }
+  }
+  // sunlit dust drifting in the air (screen space, near the light)
+  function drawDust(t) {
+    const e = E(), c = e.c, W2 = e.W, H2 = e.H;
+    c.fillStyle = 'rgba(255,236,190,.35)';
+    for (let i = 0; i < 26; i++) {
+      const x = (((i * 197.3 + t * (6 + (i % 5) * 2)) % (W2 * 0.7)) + W2 * 0.02), y = ((i * 131.7 + Math.sin(t * 0.6 + i) * 30 + t * 4) % (H2 * 0.75));
+      c.beginPath(); c.arc(x, y, (1 + (i % 3)) * e.dpr * 0.8, 0, Math.PI * 2); c.fill();
+    }
   }
 
   // Jantar Mantar compound
@@ -411,6 +458,8 @@ JM.world = (() => {
     for (const v of W.vans) if (v.d > cd && v.d < cd + 80) addPoly([[v.x + 1, v.d - 2.4, 0.01], [v.x + 1, v.d + 2.4, 0.01], [v.x + 2.4, v.d + 1.9, 0.01], [v.x + 2.4, v.d - 2.9, 0.01]]);
     c.fillStyle = 'rgba(48,24,58,.24)'; c.fill();
     }
+    if (W.decals) drawDecals(W, cd);
+    if (W.fxGround) W.fxGround();
 
     // contact shadows
     for (const o of dyn) if (o.shadow) e.shadow(o.x + 0.25, o.d - 0.1, o.shadow, 0.38 * fogA(o.d));
@@ -441,7 +490,13 @@ JM.world = (() => {
     if (W.stage && (vis(W.stage.d0) || vis(W.stage.d1))) L.push({ d: W.stage.d1, f: () => { c.globalAlpha = fogA(W.stage.d0); drawStage(W.stage); c.globalAlpha = 1; } });
     for (const f of W.flags) if (vis(f.d)) L.push({ d: f.d, f: () => { c.globalAlpha = fogA(f.d); drawFlag(f, t); c.globalAlpha = 1; } });
     for (const cn of W.cones) if (vis(cn.d) && cn.d < cd + 70) L.push({ d: cn.d, f: () => drawCone(cn) });
-    for (const g of W.guards) if (vis(g.d) && g.d < cd + 75) L.push({ d: g.d, f: () => e.sprite(JM.sprites.get(g.look, 'front', 'idle', Math.floor(t * 3 + g.t) % JM.sprites.FRAMES), g.x, g.d, 0, { alpha: fogA(g.d) }) });
+    for (const g of W.guards) if (vis(g.d) && g.d < cd + 75) L.push({ d: g.d, f: () => {
+      e.sprite(JM.sprites.get(g.look, 'front', 'idle', Math.floor(t * 3 + g.t) % JM.sprites.FRAMES), g.x, g.d, 0, { alpha: fogA(g.d) });
+      if (g.gas) { // tear-gas launcher held across the chest, muzzle up
+        const a = e.P(g.x - 0.25, g.d - 0.15, 1.05), b = e.P(g.x + 0.32, g.d - 0.35, 1.75);
+        if (a && b) { c.lineCap = 'round'; c.strokeStyle = '#2b2d2a'; c.lineWidth = Math.max(2.5, a.s * 0.13); c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); c.strokeStyle = '#5a5f52'; c.lineWidth = Math.max(1.2, a.s * 0.07); c.stroke(); }
+      }
+    } });
     for (const a of W.autos) if (vis(a.d)) L.push({ d: a.d - 1.3, f: () => { c.globalAlpha = fogA(a.d); drawAuto(a); c.globalAlpha = 1; } });
     for (const p of W.crowd) if (vis(p.d) && p.d < cd + JM.quality.crowdRange) L.push({ d: p.d, f: () => e.sprite(JM.sprites.get(p.look, 'front', 'cheer', Math.floor(t * 8 + p.t * 3) % JM.sprites.FRAMES), p.x, p.d, p.h || 0, { alpha: fogA(p.d) }) });
     if (vis(CHOWK)) L.push({ d: CHOWK - ISLAND_R, f: () => drawIsland(t) });
@@ -461,6 +516,7 @@ JM.world = (() => {
     hz.addColorStop(0, 'rgba(255,222,180,0)'); hz.addColorStop(0.35, 'rgba(255,214,168,.38)'); hz.addColorStop(1, 'rgba(255,214,168,0)');
     c.fillStyle = hz; c.fillRect(0, 0, W2, H2);
     // light leak + vignette never change for a given screen size: pre-render once, blit each frame
+    if (JM.quality.grain) drawDust(t);
     if (!post || post.w !== W2 || post.h !== H2) post = makePost(W2, H2);
     c.drawImage(post.cv, 0, 0, W2, H2);
   }

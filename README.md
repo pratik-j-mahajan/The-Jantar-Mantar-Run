@@ -23,7 +23,10 @@ Reach the Jantar Mantar gate at the end of the road.
 **Rules**
 - **Barricades:** jump over them. Buses, vans, trucks and water cannons are solid, so go around them.
 - **Police and paramilitary:** if one catches you, you're **detained**. Two officers carry you into a van (5 seconds), then you sit through a 5-second countdown and are released a little way back.
-- **Stick squad:** a hit costs **50% जान** (health). A second hit means **game over**.
+- **Health (जान)** starts at 100% and the game ends at 0%:
+  - **Stick squad:** a hit costs **−50%**.
+  - **Water cannon:** the truck's turret swings toward you (blue aim stripe, "PAANI CHHODO!"), then fires a **3-second** jet. If it hits, you're thrown back and lose **−30%**. Dodge it by moving fast sideways, sprinting past or jumping.
+  - **Tear gas:** at each blockade, one riot trooper lobs a single tear-gas canister at where you're heading (5 per run at most). A **red ring** shows where it will land. The canister lies on the road pouring out gas. If you're inside the ring when it lands, you lose **−20%**, cough, your vision hazes and you slow down for a moment. The cloud lingers and drifts.
 - **Jumping:** you can't be caught while high in a jump.
 - **Your pace:** there's no auto-run. You choose when to sprint and when to wait for a gap.
 
@@ -32,7 +35,8 @@ Reach the Jantar Mantar gate at the end of the road.
 - **Five characters:** Neha, Abhijit, NSUI, GenZ and the Ex Minister. Each has its own design and props, and speed varies slightly.
 - **Delhi street, golden hour:** shopfronts with Hindi/English signboards, AC units and hanging wires, colonnaded government buildings, neem trees, autos ("Horn OK Please"), chai stalls, dharna tents, a protest stage, flags and slogan banners.
 - **A chowk:** a roundabout with a fountain and a tall tricolour about halfway along.
-- **Police presence:** DTC and Dilli Police buses parked across the road as blockades, lines of officers with shields, blue- and olive-camo riot units, troop trucks, water cannons, and police vans that charge at you.
+- **Police presence:** DTC and Dilli Police buses parked across the road as blockades, lines of officers with shields, blue- and olive-camo riot units (one at each blockade carries a tear-gas launcher), troop trucks, four working water-cannon trucks, and police vans that charge at you.
+- **Street detail:** manhole covers, patched potholes, leaflets scattered around the protests, slippers lost in scuffles, wet patches where the water cannons fired, pigeons crossing the sky and dust drifting in the sunlight.
 - **Media crew:** "Samdish · Unfiltered" and "Camera Person Parth" run along the footpath with police on their heels. When you're detained, they rush in to film and interview.
 - **Finish:** the Jantar Mantar compound, with the Samrat Yantra, the curved quadrants and the Ram Yantra, plus marigold petals and a "जंतर मंतर / GenZ" win banner.
 - **Soundtrack:** generated live. A daphli protest beat, call-and-response chants ("In-qui-lab! / Zin-da-baad!", "Hum de-khen-ge!", "Aa-waaz do! / Hum ek hain!"), crowd claps, bansuri and harmonium, plus police whistles, sirens, auto horns and a temple bell. The mute button is in the HUD.
@@ -55,6 +59,7 @@ js/engine.js          2.5D renderer: chase camera, lit boxes, texture-mapped fac
 js/props.js           textures: Delhi facades, buses, vans, trucks, autos, barricades, banners,
                       tents, trees, asphalt, pavers
 js/world.js           level layout (blockades, chowk, set dressing) + world rendering
+js/hazards.js         water cannons + tear gas: aiming, firing, hit tests, smoke, spray, screen effects
 js/game.js            game states, input, AI, detention sequence, media crew, effects, HUD,
                       analytics, idle sprite pre-rendering
 fonts/                self-hosted, subsetted woff2 (Yatra One, Bangers, Baloo 2)
@@ -108,8 +113,8 @@ GA4 property `G-4LJWPG03B6`. The ID appears twice in `index.html`, so change bot
 | `character_selected` | a character card is clicked | `character` |
 | `game_start` | every run, retries included | `character`, `attempt` |
 | `player_detained` | caught by police / paramilitary / a van | `character`, `detentions`, `progress_pct`, `by` |
-| `player_hit` | caught by the stick squad | `character`, `health_before`, `progress_pct` |
-| `game_over` | the second hit | `character`, `progress_pct`, `time_sec`, `detentions`, `hits` |
+| `player_hit` | stick squad, water cannon or tear gas | `character`, `by` (stick/water/gas), `damage`, `health_before`, `progress_pct` |
+| `game_over` | health reaches 0% | `character`, `by`, `progress_pct`, `time_sec`, `detentions`, `hits` |
 | `game_won` | reached Jantar Mantar | `character`, `time_sec`, `detentions`, `hits`, `health` |
 | `game_quit` | ← BACK / Esc during a run | `character`, `progress_pct`, `time_sec` |
 | `linkedin_click` | the creator's LinkedIn button | `from` |
@@ -126,6 +131,8 @@ To see the params in GA4 reports, register them under **Admin → Custom definit
 | Characters (names, looks, speed) | `CHARS` in `js/sprites.js` |
 | Blockade positions, trucks, platoons | `BLOCKS`, `TRUCKS`, `platoon(...)` in `js/world.js` |
 | Detention length | `CAPTURE` and `DETAIN_MS` at the top of `js/game.js` |
+| Water cannon range / timing, tear-gas radius | `JET` and `GAS` at the top of `js/hazards.js` |
+| Damage amounts | the `damage(…)` calls (stick in `js/game.js`, water/gas in `js/hazards.js`) |
 | Run speed, jump height | `RUN`, `JUMP_V` at the top of `js/game.js` |
 
 ### Testing

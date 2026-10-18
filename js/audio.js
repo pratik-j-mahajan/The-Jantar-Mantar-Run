@@ -280,6 +280,31 @@ JM.audio = (() => {
     dholBass(t, 1); dholBass(t + 1.4, 1);
   }
 
+  // ---------- crowd-control SFX ----------
+  function loopNoise(dest, type, freq, q, t, peak, dur, att = 0.12) {
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noise; s.loop = true; f.type = type; f.frequency.value = freq; f.Q.value = q;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + att);
+    g.gain.setValueAtTime(peak, t + Math.max(att, dur - 0.3)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(dest); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05);
+    return { s, g };
+  }
+  // high-pressure water jet: roaring hiss + pump rumble; returns a stop() for early cut-off
+  function waterJet(dur = 3) {
+    if (!ctx) return () => {};
+    const t = ctx.currentTime;
+    const a = loopNoise(sfx, 'bandpass', 2000, 0.5, t, 0.2, dur), b = loopNoise(sfx, 'lowpass', 300, 0.7, t, 0.14, dur, 0.2);
+    tone(sfx, 'sawtooth', 52, 48, t, 0.15, 0.035, dur - 0.15);
+    return () => { try { const n = ctx.currentTime; for (const x of [a, b]) { x.g.gain.cancelScheduledValues(n); x.g.gain.setTargetAtTime(0.0001, n, 0.06); x.s.stop(n + 0.3); } } catch (_) {} };
+  }
+  const gasLaunch = () => { if (!ctx) return; const t = ctx.currentTime; tone(sfx, 'sine', 150, 42, t, 0.003, 0.75, 0.28); hiss(sfx, 'lowpass', 900, 1, t, 0.45, 0.14); };
+  const gasHiss = () => { if (!ctx) return; const t = ctx.currentTime; tone(sfx, 'sine', 95, 40, t, 0.003, 0.5, 0.22); loopNoise(sfx, 'highpass', 2600, 0.7, t + 0.02, 0.16, 1.8, 0.04); };
+  function cough() {
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    for (const k of [0, 0.3, 0.52, 0.95]) { hiss(sfx, 'bandpass', 650 + Math.random() * 200, 1.6, t + k, 0.32, 0.13); tone(sfx, 'sawtooth', 190, 120, t + k, 0.006, 0.05, 0.12); }
+  }
+
   function say(text, lang = 'hi-IN') {
     if (muted || !('speechSynthesis' in window)) return;
     try {
@@ -318,6 +343,6 @@ JM.audio = (() => {
     },
     setIntensity(x) { intensity = x; },
     setMuted(m) { muted = m; if (ctx) master.gain.setTargetAtTime(m ? 0 : 0.9, ctx.currentTime, 0.05); if (m && 'speechSynthesis' in window) speechSynthesis.cancel(); },
-    whistle, siren, busHorn, thak, dhishum, jump, land, pickup, count, fanfare, sad, say,
+    whistle, siren, busHorn, thak, dhishum, jump, land, pickup, count, fanfare, sad, say, waterJet, gasLaunch, gasHiss, cough,
   };
 })();

@@ -16,7 +16,7 @@ async function minify(code, loader) {
   catch (err) { console.warn(`minify (${loader}) failed, using original: ${err.message}`); return code; }
 }
 
-const ORDER = ['audio', 'sprites', 'engine', 'props', 'world', 'game'];
+const ORDER = ['audio', 'sprites', 'engine', 'props', 'world', 'hazards', 'game'];
 const hash = (s) => createHash('sha256').update(s).digest('hex').slice(0, 10);
 
 const js = ORDER.map((n) => readFileSync(`js/${n}.js`, 'utf8')).join('\n;\n');
