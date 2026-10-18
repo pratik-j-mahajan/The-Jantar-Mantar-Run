@@ -258,6 +258,7 @@
     A.start();
     setMode('count');
     track('game_start', { character: char.id, attempt: attempts });
+    if (counters.plays) counters.plays.hit();
   }
   function goTitle() {
     setMode('title'); P = null;
@@ -817,6 +818,45 @@
   }
   function warmPlayer(ch) { warmQ.unshift(...(() => { const q = []; for (const p of ['walk', 'idle', 'cheer']) for (let f = 0; f < S.FRAMES; f++) q.push([ch, 'back', p, f]); q.push([ch, 'back', 'jump', 0], [ch, 'back', 'hit', 0]); return q; })()); idle(warmTick); }
 
+  // ---------- live counters: visits (game opened, once per tab session) + plays (every run started) ----------
+  // Free Abacus counter API. Open pages get every change pushed live over server-sent events (polling fallback).
+  // If the service is unreachable the badge stays hidden; the game never depends on it.
+  const COUNTER = 'https://abacus.jasoncameron.dev', CNS = 'the-jantar-mantar-run';
+  const testVisit = /^(localhost|127\.|\[::1\])/.test(location.hostname) || /[?&]debug\b/.test(location.search);
+  const counters = {};
+  function liveCounter(key, el) {
+    const box = $('#visits');
+    let shown = -1, es = null, poll = null;
+    const set = (v) => {
+      if (typeof v !== 'number' || v < 0) return;
+      if (shown >= 0 && v !== shown) { box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump'); }
+      shown = v; el.textContent = v.toLocaleString('en-IN'); show(box);
+    };
+    const req = (op) => fetch(`${COUNTER}/${op}/${CNS}/${key}`).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j) set(j.value); return j; }).catch(() => null);
+    const pollOnce = () => req('get');
+    const start = () => {
+      if (es || poll || document.hidden) return;
+      if (!('EventSource' in window)) { poll = setInterval(pollOnce, 30000); return; }
+      es = new EventSource(`${COUNTER}/stream/${CNS}/${key}`);
+      es.onmessage = (e) => { try { set(JSON.parse(e.data).value); } catch (_) {} };
+      es.onerror = () => { if (es) es.close(); es = null; if (!poll) poll = setInterval(pollOnce, 30000); };
+    };
+    const stop = () => { if (es) { es.close(); es = null; } if (poll) { clearInterval(poll); poll = null; } };
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+    return { req, start, hit: () => (testVisit ? null : req('hit')) };
+  }
+  function initVisits() {
+    if (!$('#visits')) return;
+    counters.visits = liveCounter('visits', $('#visitsNum'));
+    counters.plays = liveCounter('plays', $('#playsNum'));
+    let counted = false;
+    try { counted = sessionStorage.getItem('cjm_counted') === '1'; } catch (_) {}
+    if (!counted && !testVisit) counters.visits.hit().then((j) => { if (j) try { sessionStorage.setItem('cjm_counted', '1'); } catch (_) {} });
+    else counters.visits.req('get');
+    counters.plays.req('get');
+    counters.visits.start(); counters.plays.start();
+  }
+
   function boot() {
     E.init(cv);
     JM.props.build();
@@ -824,6 +864,7 @@
     HZ = JM.hazards.create({ P: () => P, mode: () => mode, damage, pop });
     HZ.reset(W);
     buildCards();
+    initVisits();
     document.body.classList.remove('loading');
     try { performance.mark('jm-ready'); } catch (_) {}
     warmWorld();

@@ -312,3 +312,29 @@ kbd { text-shadow: none; -webkit-text-stroke: 0; background: #fffaf0; color: #1d
   .banner.big h1 { font-size: clamp(36px, 9vh, 60px); }
   .genz { font-size: 34px; }
 }
+
+/* live visit counter (small, above the game-name badge) */
+.visits {
+  position: absolute; left: 18px; bottom: calc(66px + env(safe-area-inset-bottom)); z-index: 20; pointer-events: none;
+  display: flex; align-items: center; gap: 6px; padding: 3px 10px 3px 8px;
+  background: rgba(29, 20, 36, .78); color: #fff3dc; border: 2px solid rgba(255, 243, 220, .35); border-radius: 999px;
+  font: 700 12px/1.2 var(--ui); letter-spacing: .02em; backdrop-filter: blur(2px);
+}
+.visits b { font: 800 14px/1 var(--ui); color: var(--yel); font-variant-numeric: tabular-nums; }
+.visits .v-lbl { opacity: .8; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #ff4d4d; box-shadow: 0 0 0 0 rgba(255,77,77,.6); animation: livePulse 1.6s infinite; }
+@keyframes livePulse { 0% { box-shadow: 0 0 0 0 rgba(255,77,77,.6); } 70% { box-shadow: 0 0 0 7px rgba(255,77,77,0); } 100% { box-shadow: 0 0 0 0 rgba(255,77,77,0); } }
+.visits.bump b { animation: vBump .5s cubic-bezier(.3, 1.8, .5, 1); }
+@keyframes vBump { 0% { transform: scale(1); } 40% { transform: scale(1.35); color: #fff; } 100% { transform: scale(1); } }
+#title:not(.hidden) ~ .visits { bottom: calc(16px + env(safe-area-inset-bottom)); } /* no badge on the title screen */
+@media (hover: none), (pointer: coarse) {
+  /* phones: stack name badge + counter bottom-left, above the touch controls and clear of the credit card */
+  .brand { left: 12px; transform: rotate(-2deg); font-size: 17px; bottom: calc(136px + env(safe-area-inset-bottom)); }
+  .visits { left: 12px; bottom: calc(176px + env(safe-area-inset-bottom)); font-size: 11px; }
+  .visits b { font-size: 12px; }
+  #pad.hidden ~ .brand { bottom: calc(16px + env(safe-area-inset-bottom)); }
+  #pad.hidden ~ .visits { bottom: calc(56px + env(safe-area-inset-bottom)); }
+  #title:not(.hidden) ~ .visits { bottom: calc(16px + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) { .live-dot, .visits.bump b { animation: none; } }
+.visits .v-sep { opacity: .5; margin: 0 1px; }

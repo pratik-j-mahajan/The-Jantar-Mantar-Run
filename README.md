@@ -104,6 +104,23 @@ npm run build
 - **Adaptive quality** (levels 3 → 0): the game starts one step below full and steps up after about 4 s if the device holds 60 fps comfortably. If a device can't hold about 50 fps, the game steps down resolution, then ground textures, shadows, clouds, grain and crowd distance. The level is remembered per device.
 - **Crash-safe:** the frame loop survives unexpected errors and reports them to GA.
 
+### Live visit counter
+
+The small "● 53 visits · 110 plays" badge shows totals since launch (16 Oct 2026), and they update live for everyone.
+- **What each number counts:**
+  - **visits**: the game was opened, counted once per browser tab session, so reloads don't inflate it.
+  - **plays**: a run was started, counted every time, retries included.
+- **Not counted:** visits from `localhost` or with `?debug`. Link-preview bots never run the page, so they never count either.
+- **Starting totals:** seeded from Google Analytics on 18 Oct 2026, live site only with test sessions excluded: 57 sessions minus about 4 of my own checks = 53 visits, plus 110 `game_start` = 110 plays.
+- **Service:** the free [Abacus](https://abacus.jasoncameron.dev) counter API, namespace `the-jantar-mantar-run`. Open pages get every change pushed instantly (server-sent events, with polling as a fallback). If the service is down, the badge hides and the game is unaffected. A counter stays alive as long as it's used.
+- **Correcting the totals:** use `counter-admin.mjs`. It needs the private admin keys in `.counter-admin.local.json`, which is never committed.
+
+```bash
+node counter-admin.mjs show
+node counter-admin.mjs set visits 1234
+node counter-admin.mjs add plays 10
+```
+
 ### Google Analytics
 
 GA4 property `G-4LJWPG03B6`. The ID appears twice in `index.html`, so change both to use a different property.
