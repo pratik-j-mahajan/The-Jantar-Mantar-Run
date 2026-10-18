@@ -159,8 +159,7 @@ JM.world = (() => {
       const cy = hy - H * (0.05 + ((k * 37) % 9) / 60), cw = (120 + (k * 53) % 140) * e.dpr;
       for (let j = 0; j < 4; j++) {
         const gx = cx + (j - 1.5) * cw * 0.35, gy = cy + Math.sin(j * 2 + k) * cw * 0.06, r = cw * (0.32 + (j % 2) * 0.12);
-        const cg = c.createRadialGradient(gx, gy, 0, gx, gy, r); cg.addColorStop(0, 'rgba(255,244,228,.55)'); cg.addColorStop(1, 'rgba(255,236,210,0)');
-        c.fillStyle = cg; c.fillRect(gx - r, gy - r, r * 2, r * 2);
+        c.globalAlpha = 0.55; c.drawImage(e.blob('255,244,228', 0.45), gx - r, gy - r, r * 2, r * 2); c.globalAlpha = 1;
       }
     }
     c.fillStyle = 'rgba(255,248,220,.9)'; c.beginPath(); c.arc(W * 0.18, hy - H * 0.1, H * 0.035, 0, Math.PI * 2); c.fill();

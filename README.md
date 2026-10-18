@@ -25,7 +25,7 @@ Reach the Jantar Mantar gate at the end of the road.
 - **Police and paramilitary:** if one catches you, you're **detained**. Two officers carry you into a van (5 seconds), then you sit through a 5-second countdown and are released a little way back.
 - **Health (जान)** starts at 100% and the game ends at 0%:
   - **Stick squad:** a hit costs **−50%**.
-  - **Water cannon:** the truck's turret swings toward you (blue aim stripe, "PAANI CHHODO!"), then fires a **3-second** jet. If it hits, you're thrown back and lose **−30%**. Dodge it by moving fast sideways, sprinting past or jumping.
+  - **Water cannon:** the truck's turret swings toward you (blue aim stripe, "PAANI CHHODO!"), then fires a **3-second** jet. The jet starts on the truck's side of the road and sweeps toward you, aiming where you're running. If its impact zone hits you, you're thrown back and lose **−30%**. Dodge it by keeping to the far side and sprinting past the truck (the nozzle only points forward), by swerving sharply, or by jumping the stream.
   - **Tear gas:** at each blockade, one riot trooper lobs a single tear-gas canister at where you're heading (5 per run at most). A **red ring** shows where it will land. The canister lies on the road pouring out gas. If you're inside the ring when it lands, you lose **−20%**, cough, your vision hazes and you slow down for a moment. The cloud lingers and drifts.
 - **Jumping:** you can't be caught while high in a jump.
 - **Your pace:** there's no auto-run. You choose when to sprint and when to wait for a gap.
@@ -101,7 +101,7 @@ npm run build
 - **No stutter mid-run:** character poses are pre-rendered in idle time.
 - **Resolution budget:** big and Retina screens render at a capped pixel count (about 2.4 MP at full quality) and are upscaled smoothly, so a 4K monitor costs about the same as a laptop.
 - **60 fps cap:** 120 Hz and 144 Hz displays draw every other refresh instead of doubling the work.
-- **Adaptive quality** (levels 3 → 0): if a device can't hold about 50 fps, the game steps down resolution, then ground textures, shadows, clouds, grain and crowd distance. The level is remembered per device.
+- **Adaptive quality** (levels 3 → 0): the game starts one step below full and steps up after about 4 s if the device holds 60 fps comfortably. If a device can't hold about 50 fps, the game steps down resolution, then ground textures, shadows, clouds, grain and crowd distance. The level is remembered per device.
 - **Crash-safe:** the frame loop survives unexpected errors and reports them to GA.
 
 ### Google Analytics

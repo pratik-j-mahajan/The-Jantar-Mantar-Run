@@ -6,7 +6,7 @@
 window.JM = window.JM || {};
 JM.hazards = (() => {
   const TAU = Math.PI * 2;
-  const JET = { range: 13, aim: 0.85, fire: 3.0, cool: 4.5, turn: 1.6, hitR: 1.05 };
+  const JET = { lock: 28, range: 18, aim: 0.9, fire: 3.0, cool: 4.5, turn: 2.2, turnX: 0.75, hitR: 1.35, lead: 0.35 };
   const GAS = { blastR: 2.4, flight: 1.05, cloud: 5.5, cool: 12, gap: 3.5 }; // sparing: one shot per blockade as you approach
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -49,17 +49,17 @@ JM.hazards = (() => {
     function updateCannon(c, dt, P, playing) {
       const [nx, nd] = nozzle(c);
       c.t += dt;
-      const inRange = P && playing && P.d < nd + 1 && Math.hypot(P.x - nx, P.d - nd) < JET.range && !P.hidden;
+      const inRange = P && playing && P.d < nd + 1 && nd - P.d < JET.lock && !P.hidden;
       if (c.state === 'idle') {
-        if (inRange) { c.state = 'aim'; c.t = 0; c.hit = false; c.ax = P.x; c.ad = P.d - 2; A.siren(0.8); api.pop('bubble', 'PAANI CHHODO!', c.x, c.d - 3, 3.6, { max: 1 }); }
+        if (inRange) { c.state = 'aim'; c.t = 0; c.hit = false; c.ax = c.x; c.ad = nd - 7; /* starts on its own side, then sweeps toward you */ A.siren(0.8); api.pop('bubble', 'PAANI CHHODO!', c.x, c.d - 3, 3.6, { max: 1 }); }
       } else if (c.state === 'aim' || c.state === 'fire') {
         if (P) {
           // the turret tracks you with a lag, so moving fast sideways or sprinting past dodges the stream
-          const tx = P.x + (P.vx || 0) * 0.15, td = P.d;
-          const k = Math.min(1, dt * JET.turn);
-          c.ax += (tx - c.ax) * k; c.ad += (td - c.ad) * k;
+          const tx = P.x + (P.vx || 0) * 0.2, td = P.d + Math.max(0, P.vd || 0) * JET.lead;
+          c.ax += (tx - c.ax) * Math.min(1, dt * JET.turnX); c.ad += (td - c.ad) * Math.min(1, dt * JET.turn);
           const dx = c.ax - nx, dd = c.ad - nd, len = Math.hypot(dx, dd);
           if (len > JET.range) { c.ax = nx + (dx / len) * JET.range; c.ad = nd + (dd / len) * JET.range; }
+          c.ad = Math.min(c.ad, nd - 1.5); // the nozzle only points forward: get past the truck and you're clear
         }
         if (c.state === 'aim' && c.t > JET.aim) { c.state = 'fire'; c.t = 0; c.snd = A.waterJet(JET.fire); }
         if (c.state === 'fire') {
@@ -67,8 +67,7 @@ JM.hazards = (() => {
           for (let k = 0; k < 3; k++) mist.push({ x: c.ax + rand(-0.5, 0.5), d: c.ad + rand(-0.4, 0.4), h: rand(0.1, 0.6), vx: rand(-2, 2), vd: rand(-2, 1), vh: rand(1.5, 4), life: 0, max: rand(0.4, 0.8), r: rand(0.12, 0.26) });
           if (!puddles.length || Math.hypot(puddles[puddles.length - 1].x - c.ax, puddles[puddles.length - 1].d - c.ad) > 0.8) puddles.push({ x: c.ax, d: c.ad, r: rand(0.9, 1.4), life: 0 });
           if (P && playing && !c.hit && P.z < 1.5 && P.inv <= 0) {
-            const segD = segDist(P.x, P.d, nx, nd, c.ax, c.ad);
-            if (segD.dist < JET.hitR && segD.t > 0.3) {
+            if (Math.hypot(P.x - c.ax, P.d - c.ad) < JET.hitR) {
               c.hit = true;
               const dx = P.x - nx, dd = P.d - nd, l = Math.hypot(dx, dd) || 1;
               api.damage(30, 'water', { knock: [(dx / l) * 6.5, (dd / l) * 6.5 - 1], hop: 5 });
@@ -81,12 +80,6 @@ JM.hazards = (() => {
       } else if (c.state === 'cool' && c.t > JET.cool) c.state = 'idle';
       if (!playing && c.state !== 'idle' && c.state !== 'cool') { c.state = 'cool'; c.t = 0; if (c.snd) c.snd(); }
     }
-    function segDist(px, pd, x0, d0, x1, d1) {
-      const vx = x1 - x0, vd = d1 - d0, l2 = vx * vx + vd * vd || 1;
-      const t = clamp(((px - x0) * vx + (pd - d0) * vd) / l2, 0, 1);
-      return { dist: Math.hypot(px - (x0 + vx * t), pd - (d0 + vd * t)), t };
-    }
-
     function updateGas(dt, P, playing) {
       gasGap = Math.max(0, gasGap - dt);
       for (const L of launchers) {
@@ -96,8 +89,8 @@ JM.hazards = (() => {
         const ahead = g.d - P.d;
         if (ahead < 5 || ahead > 26) continue;
         // lead the target a little (where you'll be when it lands) and scatter it so it's dodgeable
-        const tx = clamp(P.x + (P.vx || 0) * GAS.flight * 0.6 + rand(-1.3, 1.3), -6.4, 6.4);
-        const td = P.d + Math.max(0, P.vd || 0) * GAS.flight * 0.7 + rand(-1, 1.5);
+        const tx = clamp(P.x + (P.vx || 0) * GAS.flight * 0.8 + rand(-0.8, 0.8), -6.4, 6.4);
+        const td = P.d + Math.max(0, P.vd || 0) * GAS.flight + rand(-0.8, 0.8);
         shells.push({ x0: g.x, d0: g.d - 0.3, h0: 1.7, x1: tx, d1: td, t: 0, spin: rand(7, 11) });
         L.cool = GAS.cool; L.used = true; gasGap = GAS.gap; // each trooper fires once per run
         A.gasLaunch();
@@ -245,10 +238,8 @@ JM.hazards = (() => {
         const ang = (cl.seed || 0) + k * 2.4, off = cl.grow ? cl.r * 0.45 : 0;
         const q = cl.grow ? E.P(cl.x + Math.cos(ang) * off, cl.d + Math.sin(ang) * off * 0.6, cl.h + (k % 3) * 0.35) : p;
         if (!q) continue;
-        const rr = q.s * cl.r * (cl.grow ? 0.75 : 1);
-        const g = c.createRadialGradient(q.x, q.y, 0, q.x, q.y, rr);
-        g.addColorStop(0, `rgba(236,236,226,${0.55 * cl.a})`); g.addColorStop(0.6, `rgba(214,214,200,${0.32 * cl.a})`); g.addColorStop(1, 'rgba(210,210,195,0)');
-        c.fillStyle = g; c.fillRect(q.x - rr, q.y - rr, rr * 2, rr * 2);
+        const rr = q.s * cl.r * (cl.grow ? 0.75 : 1), ga = c.globalAlpha;
+        c.globalAlpha = ga * 0.6 * cl.a; c.drawImage(E.blob('230,230,218', 0.55), q.x - rr, q.y - rr, rr * 2, rr * 2); c.globalAlpha = ga;
       }
     }
     // screen layer: water droplets on the "lens" + tear-gas haze

@@ -14,7 +14,7 @@ JM.quality = (() => {
   let saved = null;
   try { saved = localStorage.getItem('cjm_q'); } catch (_) {}
   const weak = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 3 || matchMedia('(pointer: coarse)').matches;
-  const q = { level: saved != null ? +saved : weak ? 2 : 3 };
+  const q = { level: saved != null ? +saved : weak ? 1 : 2 };
   q.set = (lv) => {
     q.level = Math.max(0, Math.min(3, lv));
     Object.assign(q, LEVELS[q.level]);
@@ -151,8 +151,10 @@ JM.engine = (() => {
     const iw = img.width, ih = img.height, end = Math.min(d1, cam.d + maxD);
     let d = Math.max(d0, cam.d + 1.2);
     while (d < end) {
-      const z = depth(d), n = z < 12 ? 4 : z < 30 ? 2 : 1, seg = tile / n;
-      const t0 = Math.floor(d / seg) * seg, t1 = Math.min(t0 + seg, end);
+      const z = depth(d), hi = JM.quality.level >= 3, n = z < 10 ? (hi ? 3 : 2) : z < 26 && hi ? 2 : 1, seg = tile / n;
+      const t0 = Math.floor(d / seg + 1e-6) * seg;
+      let t1 = Math.min(t0 + seg, end);
+      if (t1 <= d + 1e-6) t1 = Math.min(d + seg, end); // floating-point guard: always make progress
       const da = Math.max(t0, d);
       const va = (((da % tile) + tile) % tile) / tile, vb = Math.min(1, va + (t1 - da) / tile);
       if (vb > va) texRect(img, 0, (1 - vb) * ih, iw, (vb - va) * ih, [[x0, t1, 0], [x1, t1, 0], [x1, da, 0], [x0, da, 0]]);
@@ -176,7 +178,9 @@ JM.engine = (() => {
       path(s);
       c.fillStyle = L[name]; c.fill();
       if (tex[name] && polyW(w).length === 4) {
-        texQuad(tex[name], w, name === 'left' || name === 'right' ? (o.cols || 4) : 1);
+        let cols = name === 'left' || name === 'right' ? (o.cols || 4) : 1;
+        if (cols > 1) { const zc = depth((w[0][1] + w[1][1]) / 2); cols = Math.max(1, Math.round(cols * (zc > 35 ? 0.34 : zc > 18 ? 0.6 : 1) * (JM.quality.level >= 3 ? 1 : 0.67))); }
+        texQuad(tex[name], w, cols);
         if (name === 'right' || name === 'back') { path(s); c.fillStyle = 'rgba(40,10,30,.22)'; c.fill(); }
       }
       if (lw) { path(s); c.lineWidth = lw * dpr; c.strokeStyle = EDGE; c.lineJoin = 'round'; c.stroke(); }
@@ -209,15 +213,24 @@ JM.engine = (() => {
     c.restore();
     return p;
   }
+  // soft round blobs, rendered once and reused (a fresh gradient per call is costly on weak GPUs)
+  const blobs = {};
+  function blob(rgb, mid = 0.6) {
+    const key = rgb + mid;
+    if (blobs[key]) return blobs[key];
+    const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+    const x = cv.getContext('2d'), g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, `rgba(${rgb},1)`); g.addColorStop(mid, `rgba(${rgb},.6)`); g.addColorStop(1, `rgba(${rgb},0)`);
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    return (blobs[key] = cv);
+  }
   function shadow(x, d, r, a = 0.35, rd) {
     const p = P(x, d, 0), q = P(x, d + (rd || r * 0.6), 0);
     if (!p || !q) return;
     const rx = r * p.s, ry = Math.max(1, p.y - q.y);
-    c.save(); c.translate(p.x, p.y); c.scale(1, ry / rx);
-    const g = c.createRadialGradient(0, 0, 0, 0, 0, rx);
-    g.addColorStop(0, `rgba(60,25,10,${a})`); g.addColorStop(0.6, `rgba(60,25,10,${a * 0.6})`); g.addColorStop(1, 'rgba(60,25,10,0)');
-    c.fillStyle = g; c.beginPath(); c.arc(0, 0, rx, 0, Math.PI * 2); c.fill();
-    c.restore();
+    const ga = c.globalAlpha; c.globalAlpha = ga * a;
+    c.drawImage(blob('60,25,10'), p.x - rx, p.y - ry, rx * 2, ry * 2);
+    c.globalAlpha = ga;
   }
   // text painted on a vertical plane facing the camera (constant d)
   function wtext(text, x, d, h, size, fill, o = {}) {
@@ -235,7 +248,7 @@ JM.engine = (() => {
   }
 
   return {
-    init, resize, setCam, cam, P, depth, fog, horizonY, polyW, fillW, path, box, texQuad, texRect, texGround, EDGE, sprite, bill, shadow, wtext, lit, OUT,
+    init, resize, setCam, cam, P, depth, fog, blob, horizonY, polyW, fillW, path, box, texQuad, texRect, texGround, EDGE, sprite, bill, shadow, wtext, lit, OUT,
     get c() { return c; }, get W() { return W; }, get H() { return H; }, get dpr() { return dpr; }, get F() { return F; },
   };
 })();

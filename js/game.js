@@ -761,14 +761,17 @@
   // ---------- loop ----------
   let last = performance.now();
   // frame-time watchdog: if the device can't hold ~40fps during a run, drop one quality level
-  const perf = { ema: 16, slow: 0, cool: 2 };
+  const perf = { ema: 16, slow: 0, cool: 2, cpu: 4, good: 0, dropped: false };
   function watchPerf(raw, dt) {
-    if (!['play', 'count'].includes(mode) || document.hidden || raw > 250) return;
+    if (!['play', 'count', 'title', 'select'].includes(mode) || document.hidden || raw > 250) return;
     perf.ema += (raw - perf.ema) * 0.08;
     perf.cool = Math.max(0, perf.cool - dt);
     if (perf.cool > 0) return;
     perf.slow = perf.ema > 20 ? perf.slow + dt : 0;   // below ~50fps for 1.2s -> step down
-    if (perf.slow > 1.2 && JM.quality.level > 0) { JM.quality.set(JM.quality.level - 1); perf.slow = 0; perf.cool = 3; perf.ema = 16; }
+    if (perf.slow > 1.2 && JM.quality.level > 0) { JM.quality.set(JM.quality.level - 1); perf.slow = 0; perf.cool = 3; perf.ema = 16; perf.dropped = true; }
+    // headroom: steady ~60fps and cheap frames for 4s -> one step up (never after a drop, to avoid flip-flopping)
+    perf.good = !perf.dropped && perf.ema < 17.8 && perf.cpu < 5 ? perf.good + dt : 0;
+    if (perf.good > 4 && JM.quality.level < 3) { JM.quality.set(JM.quality.level + 1); perf.good = 0; perf.cool = 3; }
   }
   function frame(now) {
     // 120/144Hz screens: draw at ~60fps (every other vsync) instead of doubling the work
@@ -783,7 +786,9 @@
       if (mode !== 'boot') {
         step(dt, now);
         updateCam(dt);
+        const t0 = performance.now();
         render(dt);
+        perf.cpu += (performance.now() - t0 - perf.cpu) * 0.1;
         if (P) hudFrame();
         if (mode === 'select') drawCards();
       }
