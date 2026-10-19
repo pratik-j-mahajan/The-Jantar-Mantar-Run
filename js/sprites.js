@@ -54,7 +54,7 @@ JM.sprites = (() => {
       skin: '#c68a5a', hair: '#140f0f', hairStyle: 'side', top: '#f8f9fa', long: true, bottom: '#ececec', shoe: '#6b4423',
       expr: 'shout', extra: ['sash', 'flag'], accent: '#1d4ed8', speed: 1 },
     { id: 'genz', name: 'GenZ', tag: 'Going live. No cap.', bg: '#caffbf',
-      skin: '#d9a066', hair: '#7b2cbf', hairStyle: 'bucket', top: '#70e000', bottom: '#6c757d', shoe: '#ffffff',
+      skin: '#d9a066', hair: '#7b2cbf', hairStyle: 'bucket', top: '#ff7a00', bottom: '#6c757d', shoe: '#ffffff',
       expr: 'happy', extra: ['shades', 'hoodie', 'selfie'], accent: '#ffafcc', speed: 1.06 },
     { id: 'minister', name: 'Ex Minister', tag: 'Lost his convoy. Here to "clarify".', bg: '#ffd6a5',
       skin: '#c48a5e', hair: '#bdbdbd', hairStyle: 'bald', top: '#fbfaf5', long: true, bottom: '#fbfaf5', shoe: '#3e2723',
