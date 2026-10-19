@@ -311,7 +311,7 @@
     else { if (Math.abs(P.vd) > 3) bump(); P.vd = 0; }
     // free sideways movement: accelerate while held, glide to a stop on release
     const sx = inp.stick ? inp.ax : (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
-    P.vx += (sx * SIDE * slow - P.vx) * Math.min(1, dt * (sx ? 9 : 7));
+    P.vx += (sx * SIDE * slow * Math.min(1, char.speed) - P.vx) * Math.min(1, dt * (sx ? 9 : 7));
     if (Math.abs(P.vx) < 0.02) P.vx = 0;
     const nx = clamp(P.x + P.vx * dt, -EDGE, EDGE);
     if (nx !== P.x) {
@@ -351,6 +351,8 @@
         if (f.state !== 'chase' && can && dist < f.cr && home < leash * 0.7) {
           f.state = 'chase';
           pop('bubble', f.guard ? 'IDHAR NAHI!' : f.para ? 'PEECHE HATO!' : police ? 'OYE! RUK!' : 'PAKDO!', f.x, f.d, 2.5, { max: 0.9 });
+          // the wheelchair rider answers every cop that comes for him
+          if (char.wheelchair && police && clock - (G.humT || -9) > 3.5) { G.humT = clock; pop('bubble', 'हम भी आए हैं!', P.x, P.d, 2.3, { max: 1.6, size: 0.9 }); }
           if (police) A.whistle();
         } else if (f.state === 'chase' && (!can || dist > f.cr * 1.8 || home > leash)) f.state = 'return';
         if (f.state === 'chase') { vx = (dx / dist) * f.cv; vd = (dd / dist) * f.cv; }

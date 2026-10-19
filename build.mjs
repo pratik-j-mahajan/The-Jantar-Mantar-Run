@@ -36,7 +36,7 @@ let html = readFileSync('index.html', 'utf8')
   .replace(/\n\s+/g, '\n');
 writeFileSync('dist/index.html', html);
 for (const f of ['og-image.jpg', 'apple-touch-icon.png']) copyFileSync(f, `dist/${f}`); // share preview + home-screen icon
-const FONTS = ['yatra-one-subset.woff2', 'bangers-latin.woff2', 'baloo2-latin.woff2'];
+const FONTS = ['yatra-one-v2.woff2', 'bangers-latin.woff2', 'baloo2-latin.woff2'];
 mkdirSync('dist/fonts', { recursive: true });
 for (const f of FONTS) copyFileSync(`fonts/${f}`, `dist/fonts/${f}`);
 

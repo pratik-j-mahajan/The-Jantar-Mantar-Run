@@ -59,6 +59,9 @@ JM.sprites = (() => {
     { id: 'minister', name: 'Ex Minister', tag: 'Lost his convoy. Here to "clarify".', bg: '#ffd6a5',
       skin: '#c48a5e', hair: '#bdbdbd', hairStyle: 'bald', top: '#fbfaf5', long: true, bottom: '#fbfaf5', shoe: '#3e2723',
       build: 1.28, short: true, expr: 'nervous', extra: ['jacket', 'garland', 'specs', 'mustache', 'files'], accent: '#6d6875', speed: 0.94 },
+    { id: 'wheels', name: 'Wheelchair Warrior', tag: 'Ramp ya na ho, aa raha hai.', bg: '#bde0fe',
+      skin: '#b97a50', hair: '#1b1210', hairStyle: 'short', top: '#1e6fd9', bottom: '#2f3e46', shoe: '#222222',
+      expr: 'happy', extra: ['stubble'], accent: '#1e6fd9', speed: 0.6, wheelchair: true },
   ];
   const POLICE = [
     { id: 'police_a', skin: '#a8734a', hair: '#111111', hairStyle: 'beret', top: '#c2a36b', bottom: '#b0915a', shoe: '#3b2414',
@@ -301,7 +304,91 @@ JM.sprites = (() => {
   }
 
   // ---------- full character ----------
+  // ---------- seated rider in a manual wheelchair ----------
+  function drawWheelchair(c, d, o) {
+    const back = o.facing === 'back', pose = o.pose || 'idle', p = o.phase || 0;
+    const ext = new Set(d.extra || []);
+    const roll = pose === 'walk' ? p * 2 : 0;           // wheels turn as he rolls
+    const metal = '#9aa3ad', dark = '#2b2d33';
+    c.save();
+    if (pose === 'hit') c.rotate(-0.22);
+    if (pose === 'jump') c.rotate(back ? 0.1 : -0.1);    // little wheelie
+    // big rear wheels (seen nearly edge-on), tyres + push-rims + spokes
+    const wheel = (x) => {
+      ell(c, x, -36, 11, 36); fs(c, dark, 2.5);
+      ell(c, x, -36, 7, 31); c.fillStyle = '#596270'; c.fill();
+      c.strokeStyle = '#d0d6dc'; c.lineWidth = 1.2;
+      for (let k = 0; k < 6; k++) { const a = roll + (k / 6) * TAU; c.beginPath(); c.moveTo(x, -36); c.lineTo(x + Math.cos(a) * 6, -36 + Math.sin(a) * 30); c.stroke(); }
+      ell(c, x + (x < 0 ? -4 : 4), -36, 4, 28); c.strokeStyle = metal; c.lineWidth = 2.2; c.stroke();
+      circ(c, x, -36, 3); c.fillStyle = '#e9ecef'; c.fill();
+    };
+    // frame, seat and footrest
+    const frame = () => {
+      c.strokeStyle = metal; c.lineWidth = 4; c.lineCap = 'round';
+      c.beginPath(); c.moveTo(-24, -36); c.lineTo(24, -36); c.stroke();
+      c.beginPath(); c.moveTo(-22, -58); c.lineTo(-20, -18); c.moveTo(22, -58); c.lineTo(20, -18); c.stroke();
+      rrect(c, -24, -62, 48, 8, 3); fs(c, '#1d1d22', 2);            // seat
+      c.strokeStyle = metal; c.lineWidth = 3;
+      c.beginPath(); c.moveTo(-14, -20); c.lineTo(-12, -6); c.moveTo(14, -20); c.lineTo(12, -6); c.stroke();
+      rrect(c, -18, -8, 36, 5, 2); fs(c, '#3a3f47', 1.6);            // footplate
+      for (const sx of [-15, 15]) { circ(c, sx, -3, 4); fs(c, dark, 1.6); } // front casters
+    };
+    const backrest = () => {
+      rrect(c, -22, -104, 44, 46, 5); fs(c, lgH(c, -22, 22, '#24262b'));
+      c.strokeStyle = metal; c.lineWidth = 3.5; c.lineCap = 'round';
+      c.beginPath(); c.moveTo(-22, -60); c.lineTo(-22, -108); c.lineTo(-30, -110); c.moveTo(22, -60); c.lineTo(22, -108); c.lineTo(30, -110); c.stroke();
+      c.strokeStyle = '#111'; c.lineWidth = 5; c.beginPath(); c.moveTo(-31, -110); c.lineTo(-36, -111); c.moveTo(31, -110); c.lineTo(36, -111); c.stroke(); // grips
+    };
+    const shY = -104, headY = -130, wave = Math.sin(p * 1.3) * 3;
+    // raised "yo" hand (index + pinky up) on his right; left hand on the push-rim
+    const yoSide = back ? -1 : 1;
+    const yoHand = [yoSide * 30, shY - 34 + wave], rimHand = [-yoSide * 30, -50];
+    const torso = () => {
+      const tp = new Path2D();
+      tp.moveTo(-19, shY + 8); tp.quadraticCurveTo(-19, shY - 3, -9, shY - 3); tp.lineTo(9, shY - 3); tp.quadraticCurveTo(19, shY - 3, 19, shY + 8);
+      tp.lineTo(17, -60); tp.lineTo(-17, -60); tp.closePath();
+      c.fillStyle = lgH(c, -19, 19, d.top); c.fill(tp);
+      c.save(); c.clip(tp); c.fillStyle = 'rgba(255,255,255,.14)'; ell(c, -8, shY + 12, 7, 16); c.fill(); c.restore();
+      c.lineWidth = 1.6; c.strokeStyle = OUT; c.stroke(tp);
+      if (!back) { c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 1.5; c.beginPath(); c.arc(0, shY - 1, 7, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke(); } // crew neck
+    };
+    const legs = () => { // seated: thighs forward (foreshortened), shins down to the footplate
+      for (const sd of [-1, 1]) {
+        rrect(c, sd * 10 - 7, -66, 14, 14, 5); fs(c, lgH(c, sd * 10 - 7, sd * 10 + 7, d.bottom), 1.6);
+        limb(c, sd * 10, -54, sd * 11, -14, 12, d.bottom, 1.6);
+        ell(c, sd * 11, -10, 8, 4.5); fs(c, d.shoe, 1.6);
+      }
+    };
+    const arms = () => {
+      limb(c, -yoSide * 17, shY + 6, rimHand[0], rimHand[1], 11, d.top);
+      circ(c, rimHand[0], rimHand[1], 5.6); fs(c, d.skin, 1.6);
+      limb(c, yoSide * 17, shY + 6, yoSide * 26, shY - 10, 11, d.top);    // upper arm
+      limb(c, yoSide * 26, shY - 10, yoHand[0], yoHand[1] + 6, 9, d.skin); // forearm
+      const [hx, hy] = yoHand;
+      rrect(c, hx - 6, hy - 2, 12, 11, 4); fs(c, d.skin, 1.6);            // fist
+      c.fillStyle = d.skin; c.strokeStyle = OUT; c.lineWidth = 1.2;
+      for (const fx of [-4.5, 4.5]) { rrect(c, hx + fx - 1.8, hy - 12, 3.6, 12, 1.8); c.fill(); c.stroke(); } // index + pinky up
+      if (!back) { c.strokeStyle = 'rgba(80,40,20,.5)'; c.beginPath(); c.moveTo(hx - 2, hy + 3); c.lineTo(hx + 3, hy + 3); c.stroke(); }
+    };
+    const head = () => {
+      c.save(); c.translate(0, headY); c.scale(0.8, 0.8); c.translate(0, -headY);
+      c.fillStyle = shade(d.skin, -0.28); c.fillRect(-6, headY + 15, 12, 12);
+      for (const sd of [-1, 1]) { circ(c, sd * 22, headY + 2, 5.5); fs(c, d.skin, 2.5); }
+      circ(c, 0, headY, 23);
+      const hg = c.createRadialGradient(-8, headY - 10, 3, 0, headY, 27);
+      hg.addColorStop(0, shade(d.skin, 0.18)); hg.addColorStop(0.6, d.skin); hg.addColorStop(1, shade(d.skin, -0.3));
+      fs(c, hg);
+      if (!back) face(c, d, ext, headY, pose === 'hit' ? 'dizzy' : 'happy');
+      hair(c, d, headY, back);
+      c.restore();
+    };
+    if (back) { wheel(-31); wheel(31); frame(); legs(); torso(); backrest(); arms(); head(); }
+    else { wheel(-31); wheel(31); backrest(); frame(); torso(); legs(); arms(); head(); }
+    c.restore();
+  }
+
   function drawChar(c, d, o = {}) {
+    if (d.wheelchair) return drawWheelchair(c, d, o);
     const back = o.facing === 'back', m = back ? -1 : 1;
     const pose = o.pose || 'idle', p = o.phase || 0;
     const bw = d.build || 1, ext = new Set(d.extra || []);
