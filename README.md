@@ -32,7 +32,7 @@ Reach the Jantar Mantar gate at the end of the road.
 
 ## What's in the game
 
-- **Five characters:** Neha, Abhijit, NSUI, GenZ and the Ex Minister, each with its own design and props.
+- **Six characters:** Neha, Abhijit, NSUI, GenZ, the Ex Minister and the **Wheelchair Warrior**, a young man in a manual wheelchair in a blue T-shirt with a big grin and beard, one hand raised in a "yo". He moves at 80% speed, shouts "हम भी आए हैं!" at the start, and answers every cop who comes for him with the same. Each character has its own design and props.
 - **Delhi street, golden hour:** shopfronts with Hindi/English signboards, AC units and hanging wires, colonnaded government buildings, neem trees, autos ("Horn OK Please"), chai stalls, dharna tents, a protest stage, flags and slogan banners.
 - **A chowk:** a roundabout with a fountain and a tall tricolour about halfway along.
 - **Police presence:** DTC and Dilli Police buses parked across the road as blockades, lines of officers with shields, blue- and olive-camo riot units (one at each blockade carries a tear-gas launcher), troop trucks, four working water-cannon trucks, and police vans that charge at you.

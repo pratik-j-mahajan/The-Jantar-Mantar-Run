@@ -59,6 +59,9 @@ JM.sprites = (() => {
     { id: 'minister', name: 'Ex Minister', tag: 'Lost his convoy. Here to "clarify".', bg: '#ffd6a5',
       skin: '#c48a5e', hair: '#bdbdbd', hairStyle: 'bald', top: '#fbfaf5', long: true, bottom: '#fbfaf5', shoe: '#3e2723',
       build: 1.28, short: true, expr: 'nervous', extra: ['jacket', 'garland', 'specs', 'mustache', 'files'], accent: '#6d6875', speed: 0.3 },
+    { id: 'wheels', name: 'Wheelchair Warrior', tag: 'Ramp ya na ho, aa raha hai.', bg: '#bde0fe',
+      skin: '#c68650', hair: '#2a1a12', hairStyle: 'short', top: '#1e6fd9', bottom: '#2f3e46', shoe: '#222222',
+      expr: 'happy', extra: [], grinFace: true, accent: '#1e6fd9', speed: 0.8, wheelchair: true },
   ];
   const POLICE = [
     { id: 'police_a', skin: '#a8734a', hair: '#111111', hairStyle: 'beret', top: '#c2a36b', bottom: '#b0915a', shoe: '#3b2414',
@@ -301,6 +304,53 @@ JM.sprites = (() => {
   }
 
   // ---------- full character ----------
+  // ---------- original stylised face: spiky swept hair, big grin, squint eyes, moustache + jaw beard ----------
+  function grinHead(c, d, y, back, dizzy) {
+    const hairCol = d.hair, beard = 'rgba(38,24,16,.92)';
+    c.save(); c.translate(0, y); c.rotate(back ? 0 : -0.14); c.translate(0, -y);   // cheeky head tilt
+    if (!back) {
+      // jaw beard (chin strap + goatee), clipped to the head
+      c.save(); circ(c, 0, y, 23); c.clip();
+      c.fillStyle = beard;
+      c.beginPath(); c.moveTo(-22, y + 2); c.quadraticCurveTo(-20, y + 24, 0, y + 27); c.quadraticCurveTo(20, y + 24, 22, y + 2);
+      c.lineTo(17, y + 6); c.quadraticCurveTo(12, y + 19, 0, y + 20); c.quadraticCurveTo(-12, y + 19, -17, y + 6); c.closePath(); c.fill();
+      c.restore();
+      // eyebrows: thick, lifted
+      c.strokeStyle = hairCol; c.lineWidth = 3.6; c.lineCap = 'round';
+      for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(sd * 14, y - 9); c.quadraticCurveTo(sd * 9, y - 13, sd * 3, y - 11); c.stroke(); }
+      // smiling squint eyes
+      if (dizzy) { c.lineWidth = 2.4; for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(sd * 8 - 4, y - 4); c.lineTo(sd * 8 + 4, y + 3); c.moveTo(sd * 8 + 4, y - 4); c.lineTo(sd * 8 - 4, y + 3); c.stroke(); } }
+      else {
+        c.lineWidth = 2.6; c.strokeStyle = '#20140e';
+        for (const sd of [-1, 1]) { c.beginPath(); c.arc(sd * 8, y + 1, 4.6, Math.PI * 1.12, Math.PI * 1.88); c.stroke(); }
+        c.lineWidth = 1; c.strokeStyle = 'rgba(60,30,15,.45)';
+        for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(sd * 13, y + 2); c.lineTo(sd * 15, y + 4); c.stroke(); } // smile creases
+      }
+      // nose
+      c.strokeStyle = 'rgba(70,35,15,.75)'; c.lineWidth = 1.8;
+      c.beginPath(); c.moveTo(0, y + 1); c.quadraticCurveTo(4, y + 7, 0, y + 9); c.quadraticCurveTo(-2, y + 9, -3, y + 8); c.stroke();
+      // big open grin with teeth
+      c.beginPath(); c.moveTo(-10, y + 12); c.quadraticCurveTo(0, y + 15, 10, y + 11); c.quadraticCurveTo(7, y + 21, 0, y + 21); c.quadraticCurveTo(-8, y + 21, -10, y + 12); c.closePath();
+      c.fillStyle = '#5a1e14'; c.fill();
+      c.save(); c.clip(); c.fillStyle = '#fbf6ec'; c.fillRect(-11, y + 11, 22, 5.5); c.restore();
+      c.strokeStyle = '#3a160e'; c.lineWidth = 1.4; c.stroke();
+      // moustache
+      c.fillStyle = beard;
+      c.beginPath(); c.moveTo(-11, y + 12); c.quadraticCurveTo(-5, y + 8, 0, y + 10); c.quadraticCurveTo(5, y + 8, 11, y + 11); c.quadraticCurveTo(5, y + 11.5, 0, y + 12.5); c.quadraticCurveTo(-5, y + 11.5, -11, y + 12); c.fill();
+      c.fillStyle = 'rgba(255,170,120,.18)'; ell(c, -13, y + 6, 4, 2.4); c.fill(); ell(c, 13, y + 6, 4, 2.4); c.fill(); // cheeks
+    }
+    // spiky, swept-up hair
+    if (back) { circ(c, 0, y - 1, 24.5); c.fillStyle = hairCol; c.fill(); }
+    c.beginPath(); c.moveTo(-24, y + 3);
+    const tips = [[-28, -6], [-30, -20], [-22, -24], [-24, -38], [-12, -30], [-8, -44], [0, -32], [8, -46], [12, -32], [22, -40], [22, -26], [30, -24], [25, -10], [27, 2]];
+    for (const [tx, ty] of tips) c.lineTo(tx + 3, y + ty);
+    c.lineTo(23, y + 3); c.quadraticCurveTo(18, y - 12, 4, y - 14); c.quadraticCurveTo(-12, y - 14, -24, y + 3); c.closePath();
+    c.fillStyle = hairCol; c.fill(); c.lineWidth = 1.6; c.strokeStyle = OUT; c.stroke();
+    c.strokeStyle = 'rgba(120,80,55,.55)'; c.lineWidth = 1.6;
+    for (const [x0, y0, x1, y1] of [[-14, -16, -6, -36], [0, -18, 7, -40], [10, -16, 20, -34]]) { c.beginPath(); c.moveTo(x0, y + y0); c.lineTo(x1, y + y1); c.stroke(); }
+    c.restore();
+  }
+
   // ---------- seated rider in a manual wheelchair ----------
   function drawWheelchair(c, d, o) {
     const back = o.facing === 'back', pose = o.pose || 'idle', p = o.phase || 0;
@@ -375,8 +425,8 @@ JM.sprites = (() => {
       const hg = c.createRadialGradient(-8, headY - 10, 3, 0, headY, 27);
       hg.addColorStop(0, shade(d.skin, 0.18)); hg.addColorStop(0.6, d.skin); hg.addColorStop(1, shade(d.skin, -0.3));
       fs(c, hg);
-      if (!back) face(c, d, ext, headY, pose === 'hit' ? 'dizzy' : 'happy');
-      hair(c, d, headY, back);
+      if (d.grinFace) grinHead(c, d, headY, back, pose === 'hit');
+      else { if (!back) face(c, d, ext, headY, pose === 'hit' ? 'dizzy' : 'happy'); hair(c, d, headY, back); }
       c.restore();
     };
     if (back) { wheel(-31); wheel(31); frame(); legs(); torso(); backrest(); arms(); head(); }

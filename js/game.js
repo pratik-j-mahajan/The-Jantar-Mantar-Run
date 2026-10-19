@@ -499,7 +499,8 @@
         break;
       case 'count': {
         const n = 3 - Math.floor(modeT / 0.7);
-        if (n !== G.shown && n >= 0) { G.shown = n; if (n > 0) { popCenter(String(n), { max: 0.68, col: '#ffd23f' }); A.count(n); } else { popCenter('चलो!', { max: 0.9, col: '#ff5d5d' }); A.count(0); setMode('play'); } }
+        if (n !== G.shown && n >= 0) { G.shown = n; if (n > 0) { popCenter(String(n), { max: 0.68, col: '#ffd23f' }); A.count(n); } else { popCenter('चलो!', { max: 0.9, col: '#ff5d5d' }); A.count(0); setMode('play');
+          if (char.wheelchair) { G.humT = clock; pop('bubble', 'हम भी आए हैं!', P.x, P.d, 2.3, { max: 2.2, size: 0.9, obj: P }); } } }
         updateFoes(dt);
         break;
       }
