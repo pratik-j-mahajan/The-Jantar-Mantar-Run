@@ -59,9 +59,6 @@ JM.sprites = (() => {
     { id: 'minister', name: 'Ex Minister', tag: 'Lost his convoy. Here to "clarify".', bg: '#ffd6a5',
       skin: '#c48a5e', hair: '#bdbdbd', hairStyle: 'bald', top: '#fbfaf5', long: true, bottom: '#fbfaf5', shoe: '#3e2723',
       build: 1.28, short: true, expr: 'nervous', extra: ['jacket', 'garland', 'specs', 'mustache', 'files'], accent: '#6d6875', speed: 0.3 },
-    { id: 'wheels', name: 'Wheelchair Warrior', tag: 'Ramp ya na ho, aa raha hai.', bg: '#bde0fe',
-      skin: '#b97a50', hair: '#1b1210', hairStyle: 'short', top: '#1e6fd9', bottom: '#2f3e46', shoe: '#222222',
-      expr: 'happy', extra: ['stubble'], accent: '#1e6fd9', speed: 0.6, wheelchair: true },
   ];
   const POLICE = [
     { id: 'police_a', skin: '#a8734a', hair: '#111111', hairStyle: 'beret', top: '#c2a36b', bottom: '#b0915a', shoe: '#3b2414',
