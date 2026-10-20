@@ -64,7 +64,7 @@ JM.sprites = (() => {
       expr: 'happy', extra: [], grinFace: true, accent: '#1e6fd9', speed: 0.8, wheelchair: true, callout: 'हम भी आए हैं!' },
     { id: 'chhota', name: 'Chhota Badmaash', tag: 'Chhota packet, bada dhamaka.', bg: '#e0c3fc',
       skin: '#c68650', hair: '#2a1a12', hairStyle: 'short', top: '#c49be8', bottom: '#dfe3e8', shoe: '#1d1d1d',
-      expr: 'happy', extra: [], grinFace: true, fringe: true, build: 1.18, bow: [5, 3], accent: '#7b5cc4', speed: 0.8, mini: 0.58, callout: 'बौना बदमाश!' },
+      expr: 'happy', extra: [], grinFace: true, fringe: true, halfSleeve: true, build: 1.18, bow: [5, 3], accent: '#7b5cc4', speed: 0.8, mini: 0.58, callout: 'बौना बदमाश!' },
   ];
   const POLICE = [
     { id: 'police_a', skin: '#a8734a', hair: '#111111', hairStyle: 'beret', top: '#c2a36b', bottom: '#b0915a', shoe: '#3b2414',
@@ -578,7 +578,9 @@ JM.sprites = (() => {
     // arms
     for (let i = 0; i < 2; i++) {
       const sd = i ? 1 : -1, [hx, hy] = handPos[i];
-      limb(c, sd * (sw - 5), shY + 6, hx, hy, 12.5, d.top);
+      const ax = sd * (sw - 5), ay = shY + 6;
+      if (d.halfSleeve) { limb(c, ax, ay, hx, hy, 11, d.skin); limb(c, ax, ay, ax + (hx - ax) * 0.42, ay + (hy - ay) * 0.42, 14.5, d.top); }
+      else limb(c, ax, ay, hx, hy, 12.5, d.top);
       circ(c, hx, hy, 6.6); fs(c, d.skin, 2.5);
     }
     if (ext.has('riotshield') && !back) {

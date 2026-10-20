@@ -164,7 +164,10 @@ kbd { display: inline-block; min-width: 28px; padding: 1px 8px; margin: 0 2px; f
 .back { align-self: flex-start; font: 22px var(--comic); letter-spacing: .06em; padding: 6px 14px; background: var(--paper); border: 3px solid var(--ink); border-radius: 6px; box-shadow: 4px 4px 0 var(--ink); }
 .sel-head h2 { font: clamp(44px, 6vw, 72px)/1.1 var(--hindi); color: var(--yel); -webkit-text-stroke: 2px var(--ink); text-shadow: 4px 4px 0 var(--ink); transform: rotate(-2deg); }
 .sel-head p { font: 24px var(--comic); letter-spacing: .14em; color: #fff; text-shadow: 2px 2px 0 var(--ink); }
-.cards { display: grid; grid-template-columns: repeat(7, minmax(110px, 170px)); gap: 14px; margin: 18px auto 0; }
+.cards { display: grid; grid-template-columns: repeat(10, minmax(60px, 78px)); gap: 12px; margin: 10px auto 0; }
+.cards > * { grid-column: span 2; }
+.cards > :nth-child(6) { grid-column: 3 / span 2; }
+@media (max-width: 1000px) { .cards > *, .cards > :nth-child(6) { grid-column: auto; } }
 @media (max-width: 1000px) { .cards { grid-template-columns: repeat(3, minmax(140px, 200px)); } }
 @media (max-width: 560px) { .cards { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
 .card {
