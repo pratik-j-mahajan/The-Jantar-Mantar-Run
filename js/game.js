@@ -352,7 +352,7 @@
           f.state = 'chase';
           pop('bubble', f.guard ? 'IDHAR NAHI!' : f.para ? 'PEECHE HATO!' : police ? 'OYE! RUK!' : 'PAKDO!', f.x, f.d, 2.5, { max: 0.9 });
           // the wheelchair rider answers every cop that comes for him
-          if (char.wheelchair && police && clock - (G.humT || -9) > 3.5) { G.humT = clock; pop('bubble', 'हम भी आए हैं!', P.x, P.d, 2.3, { max: 1.6, size: 0.9 }); }
+          if (char.callout && police && clock - (G.humT || -9) > 3.5) { G.humT = clock; pop('bubble', char.callout, P.x, P.d, 2.3, { max: 1.6, size: 0.9 }); }
           if (police) A.whistle();
         } else if (f.state === 'chase' && (!can || dist > f.cr * 1.8 || home > leash)) f.state = 'return';
         if (f.state === 'chase') { vx = (dx / dist) * f.cv; vd = (dd / dist) * f.cv; }
@@ -500,7 +500,7 @@
       case 'count': {
         const n = 3 - Math.floor(modeT / 0.7);
         if (n !== G.shown && n >= 0) { G.shown = n; if (n > 0) { popCenter(String(n), { max: 0.68, col: '#ffd23f' }); A.count(n); } else { popCenter('चलो!', { max: 0.9, col: '#ff5d5d' }); A.count(0); setMode('play');
-          if (char.wheelchair) { G.humT = clock; pop('bubble', 'हम भी आए हैं!', P.x, P.d, 2.3, { max: 2.2, size: 0.9, obj: P }); } } }
+          if (char.callout) { G.humT = clock; pop('bubble', char.callout, P.x, P.d, 2.3, { max: 2.2, size: 0.9, obj: P }); } } }
         updateFoes(dt);
         break;
       }

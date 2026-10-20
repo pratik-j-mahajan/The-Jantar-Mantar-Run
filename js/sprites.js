@@ -61,7 +61,10 @@ JM.sprites = (() => {
       build: 1.28, short: true, expr: 'nervous', extra: ['jacket', 'garland', 'specs', 'mustache', 'files'], accent: '#6d6875', speed: 0.3 },
     { id: 'wheels', name: 'Wheelchair Warrior', tag: 'Ramp ya na ho, aa raha hai.', bg: '#bde0fe',
       skin: '#c68650', hair: '#2a1a12', hairStyle: 'short', top: '#1e6fd9', bottom: '#2f3e46', shoe: '#222222',
-      expr: 'happy', extra: [], grinFace: true, accent: '#1e6fd9', speed: 0.8, wheelchair: true },
+      expr: 'happy', extra: [], grinFace: true, accent: '#1e6fd9', speed: 0.8, wheelchair: true, callout: 'हम भी आए हैं!' },
+    { id: 'chhota', name: 'Chhota Badmaash', tag: 'Chhota packet, bada dhamaka.', bg: '#e0c3fc',
+      skin: '#c68650', hair: '#2a1a12', hairStyle: 'short', top: '#c49be8', bottom: '#dfe3e8', shoe: '#1d1d1d',
+      expr: 'happy', extra: [], grinFace: true, fringe: true, build: 1.18, bow: [5, 3], accent: '#7b5cc4', speed: 0.8, mini: 0.58, callout: 'बौना बदमाश!' },
   ];
   const POLICE = [
     { id: 'police_a', skin: '#a8734a', hair: '#111111', hairStyle: 'beret', top: '#c2a36b', bottom: '#b0915a', shoe: '#3b2414',
@@ -339,6 +342,16 @@ JM.sprites = (() => {
       c.beginPath(); c.moveTo(-11, y + 12); c.quadraticCurveTo(-5, y + 8, 0, y + 10); c.quadraticCurveTo(5, y + 8, 11, y + 11); c.quadraticCurveTo(5, y + 11.5, 0, y + 12.5); c.quadraticCurveTo(-5, y + 11.5, -11, y + 12); c.fill();
       c.fillStyle = 'rgba(255,170,120,.18)'; ell(c, -13, y + 6, 4, 2.4); c.fill(); ell(c, 13, y + 6, 4, 2.4); c.fill(); // cheeks
     }
+    if (d.fringe) { // messy mop with a long side fringe falling over the eyes
+      if (back) { circ(c, 0, y - 1, 24.5); c.fillStyle = hairCol; c.fill(); }
+      c.beginPath(); c.moveTo(-25, y + 6);
+      for (const [tx, ty] of [[-29, -8], [-34, -16], [-26, -22], [-30, -32], [-16, -34], [-10, -44], [2, -36], [12, -42], [18, -32], [28, -30], [26, -18], [30, -6], [25, 6]]) c.lineTo(tx, y + ty);
+      if (!back) { c.lineTo(20, y - 4); c.lineTo(16, y + 4); c.lineTo(10, y - 3); c.lineTo(4, y + 3); c.lineTo(0, y - 5); c.lineTo(-8, y - 2); c.lineTo(-14, y - 8); c.lineTo(-20, y - 2); }
+      c.closePath(); c.fillStyle = hairCol; c.fill(); c.lineWidth = 1.6; c.strokeStyle = OUT; c.stroke();
+      c.strokeStyle = 'rgba(150,100,70,.5)'; c.lineWidth = 1.5;
+      for (const [a, b, e, f] of [[-18, -26, -6, -8], [-2, -30, 8, -6], [12, -30, 18, -10]]) { c.beginPath(); c.moveTo(a, y + b); c.quadraticCurveTo((a + e) / 2 + 4, y + (b + f) / 2, e, y + f); c.stroke(); }
+      c.restore(); return;
+    }
     // spiky, swept-up hair
     if (back) { circ(c, 0, y - 1, 24.5); c.fillStyle = hairCol; c.fill(); }
     c.beginPath(); c.moveTo(-24, y + 3);
@@ -436,6 +449,7 @@ JM.sprites = (() => {
 
   function drawChar(c, d, o = {}) {
     if (d.wheelchair) return drawWheelchair(c, d, o);
+    if (d.mini) { c.save(); c.scale(0.74, d.mini); drawChar(c, Object.assign({}, d, { mini: 0 }), o); c.restore(); return; }
     const back = o.facing === 'back', m = back ? -1 : 1;
     const pose = o.pose || 'idle', p = o.phase || 0;
     const bw = d.build || 1, ext = new Set(d.extra || []);
@@ -469,7 +483,7 @@ JM.sprites = (() => {
 
     // legs + shoes
     for (let i = 0; i < 2; i++) {
-      const sd = i ? 1 : -1, fx = sd * (9 * bw + 1 + spread), fy = -5 - lift[i];
+      const sd = i ? 1 : -1, fx = sd * (9 * bw + 1 + spread + (d.bow ? d.bow[i] : 0)), fy = -5 - lift[i];
       limb(c, sd * 9 * bw, hipY + 4, fx, fy - 6, 15 * Math.min(bw, 1.15), d.bottom);
       ell(c, fx + sd * 2, fy - 2, 10.5, 6.5); fs(c, back && lift[i] > 4 ? shade(d.shoe, 0.35) : lgH(c, fx - 10, fx + 10, d.shoe), 2.5);
     }
@@ -602,8 +616,8 @@ JM.sprites = (() => {
     const hg = c.createRadialGradient(-8, headY - 10, 3, 0, headY, 27);
     hg.addColorStop(0, shade(d.skin, 0.18)); hg.addColorStop(0.6, d.skin); hg.addColorStop(1, shade(d.skin, -0.3));
     fs(c, hg);
-    if (!back) face(c, d, ext, headY, expr);
-    hair(c, d, headY, back);
+    if (d.grinFace) grinHead(c, d, headY, back, expr === 'dizzy');
+    else { if (!back) face(c, d, ext, headY, expr); hair(c, d, headY, back); }
     if (ext.has('hoodie') && back) { ell(c, 0, headY + 22, 24, 11); fs(c, shade(d.top, -0.15)); }
     if (ext.has('camera')) {
       const cx = m * (sw + 6), cy = headY + 10;
