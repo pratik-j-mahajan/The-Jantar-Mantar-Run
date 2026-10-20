@@ -41,6 +41,14 @@
   ui.mute.addEventListener('click', () => { muted = !muted; A.setMuted(muted); store.set('cjm_muted', muted ? '1' : '0'); ui.mute.classList.toggle('off', muted); });
 
   // ---------- effects ----------
+  // shrink the card grid just enough that the select screen never needs scrolling
+  function fitCards() {
+    const sel = document.getElementById('select'), cd = document.getElementById('cards');
+    cd.style.zoom = 1;
+    if (innerWidth <= 1000) return;   // phones/tablets scroll normally
+    setTimeout(() => { const over = sel.scrollHeight - sel.clientHeight; if (over > 0) cd.style.zoom = Math.max(0.6, (cd.offsetHeight - over - 4) / cd.offsetHeight); }, 80);
+  }
+  addEventListener('resize', () => { if (mode === 'select') fitCards(); });
   function puff(x, d, n, col = '#eedcbc') {
     for (let i = 0; i < n; i++) parts.push({ type: 'dust', x: x + rand(-0.3, 0.3), d: d + rand(-0.2, 0.2), h: 0.1, vx: rand(-1.4, 1.4), vd: rand(-0.9, 0.9), vh: rand(0.2, 1.4), life: 0, max: rand(0.45, 0.75), size: rand(0.18, 0.32), col });
   }
@@ -267,7 +275,7 @@
   }
   function goSelect() {
     A.init(); A.start(); A.duck(true);
-    setMode('select'); P = null;
+    setMode('select'); P = null; fitCards();
     [ui.title, ui.detained, ui.over, ui.won, ui.hud, ui.pad].forEach((el) => show(el, false));
     show(ui.select);
   }
