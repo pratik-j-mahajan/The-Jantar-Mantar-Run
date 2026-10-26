@@ -378,3 +378,6 @@ kbd { text-shadow: none; -webkit-text-stroke: 0; background: #fffaf0; color: #1d
   .cards { margin-top: 6px; }
   .legend { margin-top: 10px; }
 }
+
+.li.instagram { background: linear-gradient(135deg, #833ab4, #e1306c 55%, #fcb045); flex-shrink: 0; }
+.li.instagram:hover, .li.instagram:focus-visible { background: linear-gradient(135deg, #65278e, #c71f59 55%, #ed982a); }
